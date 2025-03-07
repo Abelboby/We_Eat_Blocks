@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
+import {Ownable} from "./Ownable.sol";
 
 contract Company{
     string public companyName;
@@ -31,5 +32,9 @@ contract Company{
         contactEmail = _contactEmail;
         contactNumber = _contactNumber;
         factory = _factory;
+    }
+
+    function addToken(uint256 _amount) external{
+        tokenBalance += _amount;
     }
 }
