@@ -236,15 +236,40 @@ class AuthService extends ChangeNotifier {
 
   // Sign out
   Future<void> signOut() async {
+    _setLoading(true);
+
     try {
-      _setLoading(true);
-      await _googleSignIn.signOut();
+      if (await _googleSignIn.isSignedIn()) {
+        await _googleSignIn.signOut();
+      }
       await _auth.signOut();
       _currentUser = null;
     } catch (e) {
-      _setError(e.toString());
-    } finally {
-      _setLoading(false);
+      _setError('Error signing out: $e');
+    }
+
+    _setLoading(false);
+  }
+
+  // Refresh current user data from Firestore
+  Future<void> refreshCurrentUser() async {
+    final currentFirebaseUser = _auth.currentUser;
+    if (currentFirebaseUser == null) {
+      _currentUser = null;
+      return;
+    }
+
+    try {
+      final userId = currentFirebaseUser.uid;
+      final updatedUser = await _userService.getUserFromFirestore(userId);
+
+      if (updatedUser != null) {
+        _currentUser = updatedUser;
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error refreshing user data: $e');
+      // Don't set error because this is a background operation
     }
   }
 

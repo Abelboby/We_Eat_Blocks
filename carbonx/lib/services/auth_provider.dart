@@ -28,6 +28,12 @@ class AuthProvider extends ChangeNotifier {
     return _authService.signOut();
   }
 
+  // Refresh the current user data
+  Future<void> refreshUser() async {
+    await _authService.refreshCurrentUser();
+    notifyListeners();
+  }
+
   // Helper method to access the provider
   static AuthProvider of(BuildContext context, {bool listen = true}) {
     return Provider.of<AuthProvider>(context, listen: listen);

@@ -3,6 +3,7 @@ import '../../theme/app_theme.dart';
 import '../../theme/theme_provider.dart';
 import '../../services/auth_provider.dart';
 import '../../features/wallet/presentation/screens/wallet_screen.dart';
+import '../profile/profile_edit_screen.dart';
 import '../authentication/login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -257,6 +258,24 @@ class ProfilePage extends StatelessWidget {
               pinned: true,
               title: const Text('Profile'),
               actions: [
+                // Edit profile button
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  tooltip: 'Edit Profile',
+                  onPressed: () async {
+                    final result = await Navigator.push<bool>(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ProfileEditScreen(),
+                      ),
+                    );
+
+                    // Refresh UI if changes were made
+                    if (result == true) {
+                      authProvider.refreshUser();
+                    }
+                  },
+                ),
                 // Theme toggle
                 IconButton(
                   icon: Icon(
@@ -279,19 +298,46 @@ class ProfilePage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     // Profile picture
-                    CircleAvatar(
-                      radius: 50,
-                      backgroundColor: AppTheme.accentTeal.withOpacity(0.2),
-                      backgroundImage: user?.photoUrl != null
-                          ? NetworkImage(user!.photoUrl!)
-                          : null,
-                      child: user?.photoUrl == null
-                          ? Icon(
-                              Icons.person,
-                              size: 50,
-                              color: AppTheme.accentTeal,
-                            )
-                          : null,
+                    Stack(
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        CircleAvatar(
+                          radius: 50,
+                          backgroundColor: AppTheme.accentTeal.withOpacity(0.2),
+                          backgroundImage: user?.photoUrl != null
+                              ? NetworkImage(user!.photoUrl!)
+                              : null,
+                          child: user?.photoUrl == null
+                              ? Icon(
+                                  Icons.person,
+                                  size: 50,
+                                  color: AppTheme.accentTeal,
+                                )
+                              : null,
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push<bool>(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ProfileEditScreen(),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).primaryColor,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.edit,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
 
                     const SizedBox(height: AppTheme.spacing4),
@@ -311,6 +357,15 @@ class ProfilePage extends StatelessWidget {
                       style: Theme.of(context).textTheme.bodySmall,
                       textAlign: TextAlign.center,
                     ),
+
+                    if (user?.bio != null && user!.bio!.isNotEmpty) ...[
+                      const SizedBox(height: AppTheme.spacing3),
+                      Text(
+                        user.bio!,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
 
                     const SizedBox(height: AppTheme.spacing5),
 

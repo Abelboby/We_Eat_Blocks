@@ -15,6 +15,7 @@ class UserModel {
   final String? lastWalletAddress;
   final DateTime? walletReplacedAt;
   final DateTime? walletDisconnectedAt;
+  final String? bio;
 
   UserModel({
     required this.id,
@@ -33,6 +34,7 @@ class UserModel {
     this.lastWalletAddress,
     this.walletReplacedAt,
     this.walletDisconnectedAt,
+    this.bio,
   });
 
   factory UserModel.fromFirebase(dynamic user) {
@@ -79,6 +81,7 @@ class UserModel {
     String? lastWalletAddress,
     DateTime? walletReplacedAt,
     DateTime? walletDisconnectedAt,
+    String? bio,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -98,6 +101,7 @@ class UserModel {
       lastWalletAddress: lastWalletAddress ?? this.lastWalletAddress,
       walletReplacedAt: walletReplacedAt ?? this.walletReplacedAt,
       walletDisconnectedAt: walletDisconnectedAt ?? this.walletDisconnectedAt,
+      bio: bio ?? this.bio,
     );
   }
 
@@ -119,6 +123,7 @@ class UserModel {
       'lastWalletAddress': lastWalletAddress,
       'walletReplacedAt': walletReplacedAt?.millisecondsSinceEpoch,
       'walletDisconnectedAt': walletDisconnectedAt?.millisecondsSinceEpoch,
+      'bio': bio,
     };
   }
 
@@ -150,6 +155,7 @@ class UserModel {
       walletDisconnectedAt: map['walletDisconnectedAt'] != null
           ? DateTime.fromMillisecondsSinceEpoch(map['walletDisconnectedAt'])
           : null,
+      bio: map['bio'],
     );
   }
 
@@ -171,6 +177,7 @@ class UserModel {
       lastWalletAddress: map['lastWalletAddress'],
       walletReplacedAt: map['walletReplacedAt']?.toDate(),
       walletDisconnectedAt: map['walletDisconnectedAt']?.toDate(),
+      bio: map['bio'],
     );
   }
 
@@ -184,6 +191,7 @@ class UserModel {
       'carbonFootprint': carbonFootprint,
       'offsetPercentage': offsetPercentage,
       'walletAddress': walletAddress,
+      'bio': bio,
       // Don't include ID as it's the document ID
       // Use server timestamp for these fields when creating/updating
     };
