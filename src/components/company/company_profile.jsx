@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { useWallet } from '../../context/wallet_context';
+import CompanyReports from './company_reports';
 
 const CompanyProfile = () => {
   const { company, walletAddress } = useWallet();
@@ -52,236 +53,172 @@ const CompanyProfile = () => {
     },
   ];
   
-  // Sample token balances (would come from Firebase in real app)
-  const tokenBalances = [
-    { token: 'NCT', name: 'Nature Carbon Tonne', amount: 250, value: 24625 },
-    { token: 'BCT', name: 'Base Carbon Tonne', amount: 100, value: 12530 },
-    { token: 'CHAR', name: 'Toucan Biochar Carbon', amount: 50, value: 7360 },
-  ];
+  // Format wallet address
+  const formatAddress = (address) => {
+    if (!address) return '0x...';
+    return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+  };
+  
+  if (!company) {
+    return (
+      <div className="bg-[#1E293B]/50 backdrop-blur-xl rounded-2xl p-6 border border-[#76EAD7]/10">
+        <div className="text-center py-10">
+          <div className="w-16 h-16 bg-[#76EAD7]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-[#76EAD7]" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-white mb-2">No Company Profile</h3>
+          <p className="text-[#94A3B8]">Company information not found</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
-    <div className="space-y-6">
-      {/* Company Overview Card */}
-      <motion.div
-        className="bg-[#1E293B]/50 backdrop-blur-xl rounded-2xl p-6 border border-[#76EAD7]/10"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="md:flex justify-between items-start">
-          <div>
-            <h2 className="text-2xl font-bold text-white">{company?.name || 'Company Name'}</h2>
-            <p className="text-[#94A3B8] mt-1">{company?.industry || 'Industry'}</p>
-          </div>
-          
-          <div className="mt-4 md:mt-0 bg-[#0F172A]/80 px-4 py-2 rounded-xl border border-[#76EAD7]/10 flex flex-col sm:flex-row items-center gap-3">
-            <span className="text-[#94A3B8]">MetaMask:</span>
-            <div className="flex items-center space-x-2">
-              <img src="/src/assets/metamask.png" alt="MetaMask" className="w-4 h-4" />
-              <span className="text-white text-sm font-mono truncate max-w-[120px] sm:max-w-[200px]">
-                {walletAddress || '0x...'}
-              </span>
-              <div className="w-2 h-2 rounded-full bg-green-400"></div>
-            </div>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-          <div className="p-4 bg-[#0F172A]/60 rounded-xl border border-[#76EAD7]/10">
-            <p className="text-[#94A3B8] text-sm">Registered</p>
-            <p className="text-white font-medium mt-1">{formatDate(company?.registrationDate) || 'N/A'}</p>
-          </div>
-          
-          <div className="p-4 bg-[#0F172A]/60 rounded-xl border border-[#76EAD7]/10">
-            <p className="text-[#94A3B8] text-sm">Status</p>
-            <div className="flex items-center mt-1">
-              <div className={`w-2 h-2 rounded-full ${
-                company?.verificationStatus === 'approved' ? 'bg-green-400' : 
-                company?.verificationStatus === 'rejected' ? 'bg-red-400' : 'bg-yellow-400'
-              } mr-2`}></div>
-              <p className="text-white font-medium">
-                {company?.verificationStatus === 'approved' ? 'Verified' : 
-                 company?.verificationStatus === 'rejected' ? 'Rejected' : 'Pending Verification'}
-              </p>
-            </div>
-            {company?.verificationStatus === 'rejected' && company?.rejectionReason && (
-              <p className="text-red-400 text-xs mt-2">
-                Reason: {company.rejectionReason}
-              </p>
-            )}
-          </div>
-          
-          <div className="p-4 bg-[#0F172A]/60 rounded-xl border border-[#76EAD7]/10">
-            <p className="text-[#94A3B8] text-sm">Contact</p>
-            <p className="text-white font-medium mt-1 truncate">{company?.email || 'N/A'}</p>
-          </div>
-        </div>
-      </motion.div>
-      
-      {/* Tab Navigation */}
-      <div className="border-b border-[#76EAD7]/10">
-        <nav className="flex space-x-8">
-          <button
-            onClick={() => setActiveTab('overview')}
-            className={`py-3 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'overview'
-                ? 'border-[#76EAD7] text-[#76EAD7]'
-                : 'border-transparent text-[#94A3B8] hover:text-white'
-            }`}
-          >
-            Overview
-          </button>
-          <button
-            onClick={() => setActiveTab('balances')}
-            className={`py-3 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'balances'
-                ? 'border-[#76EAD7] text-[#76EAD7]'
-                : 'border-transparent text-[#94A3B8] hover:text-white'
-            }`}
-          >
-            Token Balances
-          </button>
-          <button
-            onClick={() => setActiveTab('transactions')}
-            className={`py-3 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'transactions'
-                ? 'border-[#76EAD7] text-[#76EAD7]'
-                : 'border-transparent text-[#94A3B8] hover:text-white'
-            }`}
-          >
-            Transactions
-          </button>
-        </nav>
+    <div className="bg-[#1E293B]/50 backdrop-blur-xl rounded-2xl overflow-hidden border border-[#76EAD7]/10">
+      {/* Navigation Tabs */}
+      <div className="flex border-b border-[#76EAD7]/20">
+        <button 
+          className={`py-4 px-6 text-center font-medium ${
+            activeTab === 'overview'
+              ? 'text-[#76EAD7] border-b-2 border-[#76EAD7]'
+              : 'text-[#94A3B8] hover:text-white'
+          }`}
+          onClick={() => setActiveTab('overview')}
+        >
+          Overview
+        </button>
+        <button 
+          className={`py-4 px-6 text-center font-medium ${
+            activeTab === 'transactions'
+              ? 'text-[#76EAD7] border-b-2 border-[#76EAD7]'
+              : 'text-[#94A3B8] hover:text-white'
+          }`}
+          onClick={() => setActiveTab('transactions')}
+        >
+          Transactions
+        </button>
+        <button 
+          className={`py-4 px-6 text-center font-medium ${
+            activeTab === 'reports'
+              ? 'text-[#76EAD7] border-b-2 border-[#76EAD7]'
+              : 'text-[#94A3B8] hover:text-white'
+          }`}
+          onClick={() => setActiveTab('reports')}
+        >
+          Reports
+        </button>
       </div>
       
-      {/* Tab Content */}
-      <div className="mt-6">
-        {/* Overview Tab */}
-        {activeTab === 'overview' && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-            className="space-y-6"
-          >
-            <div className="bg-[#1E293B]/50 backdrop-blur-xl rounded-2xl p-6 border border-[#76EAD7]/10">
-              <h3 className="text-lg font-medium text-white mb-4">Company Details</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <h4 className="text-[#94A3B8] text-sm">Company Name</h4>
-                  <p className="text-white mt-1">{company?.name || 'N/A'}</p>
-                </div>
-                
-                <div>
-                  <h4 className="text-[#94A3B8] text-sm">Industry</h4>
-                  <p className="text-white mt-1">{company?.industry || 'N/A'}</p>
-                </div>
-                
-                <div>
-                  <h4 className="text-[#94A3B8] text-sm">Email</h4>
-                  <p className="text-white mt-1">{company?.email || 'N/A'}</p>
-                </div>
-                
-                <div>
-                  <h4 className="text-[#94A3B8] text-sm">Website</h4>
-                  <p className="text-white mt-1">
-                    {company?.website ? (
-                      <a href={company.website} target="_blank" rel="noopener noreferrer" className="text-[#76EAD7] hover:underline">
-                        {company.website}
-                      </a>
-                    ) : (
-                      'N/A'
-                    )}
-                  </p>
-                </div>
-                
-                <div className="col-span-1 md:col-span-2">
-                  <h4 className="text-[#94A3B8] text-sm">Description</h4>
-                  <p className="text-white mt-1">{company?.description || 'No description available.'}</p>
-                </div>
+      {/* Content based on active tab */}
+      {activeTab === 'overview' && (
+        <div className="p-6">
+          {/* Company Info Section */}
+          <div className="flex flex-col md:flex-row md:items-start mb-8">
+            <div className="flex-shrink-0 mb-4 md:mb-0 md:mr-6">
+              <div className="w-20 h-20 bg-[#76EAD7]/10 rounded-full flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-[#76EAD7]" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 01-1 1h-2a1 1 0 01-1-1v-2a1 1 0 00-1-1H7a1 1 0 00-1 1v2a1 1 0 01-1 1H3a1 1 0 01-1-1V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clipRule="evenodd" />
+                </svg>
               </div>
             </div>
             
-            <div className="bg-[#1E293B]/50 backdrop-blur-xl rounded-2xl p-6 border border-[#76EAD7]/10">
-              <h3 className="text-lg font-medium text-white mb-4">Contact Information</h3>
+            <div className="flex-1">
+              <h3 className="text-xl font-bold text-white mb-1">{company.name}</h3>
+              <p className="text-[#94A3B8] mb-3">{company.industry}</p>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <h4 className="text-[#94A3B8] text-sm">Contact Person</h4>
-                  <p className="text-white mt-1">{company?.contactPerson || 'N/A'}</p>
+                  <p className="text-[#94A3B8] text-sm">Registration Date</p>
+                  <p className="text-white">{formatDate(company.registrationDate)}</p>
                 </div>
-                
                 <div>
-                  <h4 className="text-[#94A3B8] text-sm">Contact Phone</h4>
-                  <p className="text-white mt-1">{company?.contactPhone || 'N/A'}</p>
+                  <p className="text-[#94A3B8] text-sm">Wallet Address</p>
+                  <p className="text-white font-mono">{formatAddress(company.walletAddress)}</p>
                 </div>
               </div>
+              
+              {company.website && (
+                <div className="mb-4">
+                  <p className="text-[#94A3B8] text-sm">Website</p>
+                  <a 
+                    href={company.website}
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-[#76EAD7] hover:underline"
+                  >
+                    {company.website}
+                  </a>
+                </div>
+              )}
+              
+              {company.description && (
+                <div>
+                  <p className="text-[#94A3B8] text-sm mb-1">About</p>
+                  <p className="text-white">{company.description}</p>
+                </div>
+              )}
             </div>
-          </motion.div>
-        )}
-        
-        {/* Token Balances Tab */}
-        {activeTab === 'balances' && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-          >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {tokenBalances.map(balance => (
+          </div>
+          
+          {/* Token Balances */}
+          <h4 className="text-lg font-medium text-white mb-4">Carbon Credit Balances</h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            {company.tokenBalances ? (
+              Object.entries(company.tokenBalances).map(([token, amount]) => (
                 <div 
-                  key={balance.token}
-                  className="bg-[#1E293B]/50 backdrop-blur-xl rounded-2xl p-6 border border-[#76EAD7]/10 hover:border-[#76EAD7]/30 transition-all"
+                  key={token}
+                  className="bg-[#0F172A]/40 p-4 rounded-xl border border-[#76EAD7]/10"
                 >
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="bg-[#0F172A]/60 px-3 py-1 rounded-lg">
-                      <span className="text-[#76EAD7] font-semibold">{balance.token}</span>
-                    </div>
-                    <div className="w-10 h-10 bg-[#76EAD7]/10 rounded-full flex items-center justify-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#76EAD7]" viewBox="0 0 20 20" fill="currentColor">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-[#76EAD7] px-2 py-1 bg-[#76EAD7]/10 rounded-lg">{token}</span>
+                    <div className="w-8 h-8 bg-[#76EAD7]/10 rounded-full flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-[#76EAD7]" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
                         <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
                       </svg>
                     </div>
                   </div>
-                  
-                  <div>
-                    <h3 className="text-lg font-medium text-white">{balance.name}</h3>
-                    <div className="mt-4 space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-[#94A3B8]">Balance:</span>
-                        <span className="text-white font-medium">{balance.amount} Tonnes</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-[#94A3B8]">Value:</span>
-                        <span className="text-white font-medium">${balance.value.toLocaleString()}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-6">
-                      <button className="w-full py-2 bg-gradient-to-r from-[#76EAD7] to-[#C4FB6D] text-[#0F172A] font-semibold rounded-lg hover:shadow-lg transition-all">
-                        Trade
-                      </button>
-                    </div>
+                  <div className="mt-2">
+                    <p className="text-white font-medium text-lg">{amount} Tonnes</p>
                   </div>
                 </div>
-              ))}
+              ))
+            ) : (
+              <div className="col-span-3 text-center text-[#94A3B8] p-6">
+                No token balances available
+              </div>
+            )}
+          </div>
+          
+          {/* NFT Certificates Section */}
+          <h4 className="text-lg font-medium text-white mb-4">Retirement Certificates</h4>
+          <div className="bg-[#0F172A]/40 rounded-xl border border-[#76EAD7]/10 p-6">
+            <div className="text-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-[#76EAD7]/20 mx-auto mb-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732l-3.354 1.935-1.18 4.455a1 1 0 01-1.933 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732l3.354-1.935 1.18-4.455A1 1 0 0112 2z" clipRule="evenodd" />
+              </svg>
+              <h3 className="text-lg font-medium text-white mb-2">No Certificates Yet</h3>
+              <p className="text-[#94A3B8] max-w-md mx-auto">
+                When you retire carbon credits, you'll receive NFT certificates that will appear here.
+              </p>
+              <button className="mt-4 px-4 py-2 rounded-lg bg-[#76EAD7]/10 border border-[#76EAD7]/30 text-[#76EAD7] hover:bg-[#76EAD7]/20 transition-colors">
+                Retire Credits
+              </button>
             </div>
-          </motion.div>
-        )}
-        
-        {/* Transactions Tab */}
-        {activeTab === 'transactions' && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-          >
-            <div className="bg-[#1E293B]/50 backdrop-blur-xl rounded-2xl overflow-hidden border border-[#76EAD7]/10">
+          </div>
+        </div>
+      )}
+      
+      {activeTab === 'transactions' && (
+        <div className="p-6">
+          <h4 className="text-lg font-medium text-white mb-4">Recent Transactions</h4>
+          {sampleTransactions.length > 0 ? (
+            <div className="bg-[#0F172A]/40 rounded-xl border border-[#76EAD7]/10 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-[#76EAD7]/10">
-                  <thead className="bg-[#0F172A]/40">
+                  <thead className="bg-[#0F172A]/60">
                     <tr>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[#94A3B8] uppercase tracking-wider">
                         Type
@@ -296,7 +233,7 @@ const CompanyProfile = () => {
                         Status
                       </th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[#94A3B8] uppercase tracking-wider">
-                        Tx Hash
+                        Hash
                       </th>
                     </tr>
                   </thead>
@@ -304,53 +241,22 @@ const CompanyProfile = () => {
                     {sampleTransactions.map((tx) => (
                       <tr key={tx.id} className="hover:bg-[#0F172A]/20">
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className={`
-                              w-8 h-8 rounded-full flex items-center justify-center mr-3
-                              ${tx.type === 'Purchase' ? 'bg-green-500/10' : ''}
-                              ${tx.type === 'Sale' ? 'bg-blue-500/10' : ''}
-                              ${tx.type === 'Retirement' ? 'bg-purple-500/10' : ''}
-                            `}>
-                              {tx.type === 'Purchase' && (
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500" viewBox="0 0 20 20" fill="currentColor">
-                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clipRule="evenodd" />
-                                </svg>
-                              )}
-                              {tx.type === 'Sale' && (
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
-                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clipRule="evenodd" />
-                                </svg>
-                              )}
-                              {tx.type === 'Retirement' && (
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-purple-500" viewBox="0 0 20 20" fill="currentColor">
-                                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                                </svg>
-                              )}
-                            </div>
-                            <div>
-                              <div className="text-sm font-medium text-white">{tx.type}</div>
-                              <div className="text-xs text-[#94A3B8]">{tx.token}</div>
-                            </div>
-                          </div>
+                          <div className="text-white">{tx.type}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-white">{tx.amount} Tonnes</div>
+                          <div className="text-white">{tx.amount} {tx.token}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-white">{formatDate(tx.date)}</div>
+                          <div className="text-white">{formatDate(tx.date)}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
-                            ${tx.status === 'Completed' ? 'bg-green-100 text-green-800' : ''}
-                            ${tx.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : ''}
-                            ${tx.status === 'Failed' ? 'bg-red-100 text-red-800' : ''}
-                          `}>
+                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                             {tx.status}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <a href={`https://etherscan.io/tx/${tx.hash}`} target="_blank" rel="noopener noreferrer" className="text-[#76EAD7] hover:underline font-mono truncate block max-w-[120px]">
-                            {tx.hash.substring(0, 8)}...{tx.hash.substring(tx.hash.length - 6)}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <a href={`https://etherscan.io/tx/${tx.hash}`} target="_blank" rel="noopener noreferrer" className="text-[#76EAD7] hover:underline truncate max-w-[150px] inline-block">
+                            {formatAddress(tx.hash)}
                           </a>
                         </td>
                       </tr>
@@ -359,9 +265,24 @@ const CompanyProfile = () => {
                 </table>
               </div>
             </div>
-          </motion.div>
-        )}
-      </div>
+          ) : (
+            <div className="text-center py-10 bg-[#0F172A]/40 rounded-xl border border-[#76EAD7]/10">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-[#76EAD7]/20 mx-auto mb-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+              <h3 className="text-lg font-medium text-white mb-2">No Transactions</h3>
+              <p className="text-[#94A3B8]">You haven't made any transactions yet.</p>
+            </div>
+          )}
+        </div>
+      )}
+      
+      {/* Reports Tab */}
+      {activeTab === 'reports' && (
+        <div className="p-6">
+          <CompanyReports />
+        </div>
+      )}
     </div>
   );
 };

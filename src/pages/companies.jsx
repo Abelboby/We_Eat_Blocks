@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useWallet } from '../context/wallet_context';
 import RegistrationModal from '../components/company/registration_modal';
 import CompanyProfile from '../components/company/company_profile';
+import ReportSubmissionModal from '../components/company/report_submission_modal';
 import { getAllCompanies } from '../services/auth_service';
 
 const Companies = () => {
@@ -16,6 +17,7 @@ const Companies = () => {
   } = useWallet();
   
   const [showRegModal, setShowRegModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
   const [isMetaMaskInstalled, setIsMetaMaskInstalled] = useState(false);
   const [verifiedCompanies, setVerifiedCompanies] = useState([]);
   const [selectedCompany, setSelectedCompany] = useState(null);
@@ -70,6 +72,11 @@ const Companies = () => {
       setShowRegModal(true);
     }
     // If company exists, profile is already shown
+  };
+  
+  // Handle submit report button click
+  const handleSubmitReportClick = () => {
+    setShowReportModal(true);
   };
   
   // Handle MetaMask installation
@@ -202,12 +209,28 @@ const Companies = () => {
       {/* Your Company Profile (when logged in) */}
       {walletAddress && company && (
         <div className="mb-8">
-          <h2 className="text-xl font-bold text-white mb-4 flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-[#76EAD7]" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-            </svg>
-            Your Company Profile
-          </h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold text-white flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-[#76EAD7]" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+              </svg>
+              Your Company Profile
+            </h2>
+            
+            {/* Submit Sustainability Report Button */}
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleSubmitReportClick}
+              className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#76EAD7] to-[#C4FB6D] text-[#0F172A] font-semibold flex items-center"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V8z" clipRule="evenodd" />
+              </svg>
+              Submit Report
+            </motion.button>
+          </div>
+          
           <CompanyProfile />
         </div>
       )}
@@ -432,6 +455,12 @@ const Companies = () => {
       <RegistrationModal 
         isOpen={showRegModal}
         onClose={() => setShowRegModal(false)}
+      />
+      
+      {/* Report Submission Modal */}
+      <ReportSubmissionModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
       />
     </div>
   );
