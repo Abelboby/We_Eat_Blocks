@@ -90,8 +90,9 @@ class _GoogleSignInButtonState extends State<GoogleSignInButton>
       if (user != null) {
         debugPrint("Navigating to Home screen...");
         // Navigate to home screen on success
-        Navigator.of(context).pushReplacement(
+        Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const HomeScreen()),
+          (route) => false, // Remove all previous routes
         );
       } else if (lastError != null) {
         debugPrint("Authentication error: $lastError");

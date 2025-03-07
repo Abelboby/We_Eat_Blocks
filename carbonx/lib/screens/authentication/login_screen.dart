@@ -45,9 +45,10 @@ class _LoginScreenState extends State<LoginScreen> {
         });
 
         if (user != null) {
-          // Navigate to home screen
-          Navigator.of(context).pushReplacement(
+          // Replace the current screen with HomeScreen
+          Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(builder: (context) => const HomeScreen()),
+            (route) => false, // Remove all previous routes
           );
         } else {
           // Show error message

@@ -6,6 +6,7 @@ import 'services/auth_service.dart';
 import 'services/auth_provider.dart';
 import 'services/user_service.dart';
 import 'screens/authentication/login_screen.dart';
+import 'screens/home/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -46,7 +47,14 @@ class CarbonXApp extends StatelessWidget {
           title: 'CarbonX',
           theme: themeProvider.themeData,
           debugShowCheckedModeBanner: false,
-          home: const LoginScreen(),
+          home: Consumer<AuthProvider>(
+            builder: (context, authProvider, _) {
+              // Show HomeScreen if user is authenticated, otherwise show LoginScreen
+              return authProvider.isAuthenticated
+                  ? const HomeScreen()
+                  : const LoginScreen();
+            },
+          ),
         );
       },
     );
