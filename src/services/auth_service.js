@@ -17,7 +17,7 @@ import {
 } from 'firebase/firestore';
 
 // Admin wallet address
-export const ADMIN_WALLET_ADDRESS = "0x5dE5A56Db872318af6F45e1e96154cD811A57C76";
+export const ADMIN_WALLET_ADDRESS = "0xda212D73D7287A7c0F654EB6Eb1D32F001174E77";
 
 // Connect to MetaMask wallet
 export const connectWallet = async () => {
