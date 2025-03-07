@@ -5,6 +5,7 @@ import 'package:web3dart/web3dart.dart';
 import '../../providers/wallet_provider.dart';
 import '../../widgets/import_wallet_dialog.dart';
 import '../../../../services/user_service.dart';
+import '../../../../theme/theme_provider.dart';
 
 class WalletScreen extends StatefulWidget {
   const WalletScreen({Key? key}) : super(key: key);

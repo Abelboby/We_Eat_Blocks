@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/theme_provider.dart';
 import '../../services/auth_provider.dart';
@@ -55,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDarkMode = ThemeProvider.of(context).isDarkMode;
+    final isDarkMode = Provider.of<ThemeProvider>(context).isDarkMode;
     final size = MediaQuery.of(context).size;
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
@@ -328,14 +329,21 @@ class DashboardPage extends StatelessWidget {
               pinned: true,
               title: const Text('Dashboard'),
               actions: [
-                IconButton(
-                  icon: Icon(
-                    ThemeProvider.of(context).isDarkMode
-                        ? Icons.light_mode_outlined
-                        : Icons.dark_mode_outlined,
-                  ),
-                  onPressed: () {
-                    ThemeProvider.of(context).toggleTheme();
+                // Use Consumer to properly listen to ThemeProvider changes
+                Consumer<ThemeProvider>(
+                  builder: (context, themeProvider, _) {
+                    return IconButton(
+                      icon: Icon(
+                        themeProvider.isDarkMode
+                            ? Icons.light_mode_outlined
+                            : Icons.dark_mode_outlined,
+                      ),
+                      onPressed: () {
+                        // Use Provider.of with listen: false for method calls
+                        Provider.of<ThemeProvider>(context, listen: false)
+                            .toggleTheme();
+                      },
+                    );
                   },
                 ),
               ],
@@ -385,14 +393,21 @@ class MarketplacePage extends StatelessWidget {
               pinned: true,
               title: const Text('Marketplace'),
               actions: [
-                IconButton(
-                  icon: Icon(
-                    ThemeProvider.of(context).isDarkMode
-                        ? Icons.light_mode_outlined
-                        : Icons.dark_mode_outlined,
-                  ),
-                  onPressed: () {
-                    ThemeProvider.of(context).toggleTheme();
+                // Use Consumer to properly listen to ThemeProvider changes
+                Consumer<ThemeProvider>(
+                  builder: (context, themeProvider, _) {
+                    return IconButton(
+                      icon: Icon(
+                        themeProvider.isDarkMode
+                            ? Icons.light_mode_outlined
+                            : Icons.dark_mode_outlined,
+                      ),
+                      onPressed: () {
+                        // Use Provider.of with listen: false for method calls
+                        Provider.of<ThemeProvider>(context, listen: false)
+                            .toggleTheme();
+                      },
+                    );
                   },
                 ),
               ],
@@ -442,14 +457,21 @@ class ProjectsPage extends StatelessWidget {
               pinned: true,
               title: const Text('Projects'),
               actions: [
-                IconButton(
-                  icon: Icon(
-                    ThemeProvider.of(context).isDarkMode
-                        ? Icons.light_mode_outlined
-                        : Icons.dark_mode_outlined,
-                  ),
-                  onPressed: () {
-                    ThemeProvider.of(context).toggleTheme();
+                // Use Consumer to properly listen to ThemeProvider changes
+                Consumer<ThemeProvider>(
+                  builder: (context, themeProvider, _) {
+                    return IconButton(
+                      icon: Icon(
+                        themeProvider.isDarkMode
+                            ? Icons.light_mode_outlined
+                            : Icons.dark_mode_outlined,
+                      ),
+                      onPressed: () {
+                        // Use Provider.of with listen: false for method calls
+                        Provider.of<ThemeProvider>(context, listen: false)
+                            .toggleTheme();
+                      },
+                    );
                   },
                 ),
               ],
@@ -521,15 +543,21 @@ class ProfilePage extends StatelessWidget {
                     }
                   },
                 ),
-                // Theme toggle
-                IconButton(
-                  icon: Icon(
-                    ThemeProvider.of(context).isDarkMode
-                        ? Icons.light_mode_outlined
-                        : Icons.dark_mode_outlined,
-                  ),
-                  onPressed: () {
-                    ThemeProvider.of(context).toggleTheme();
+                // Theme toggle - using Consumer for proper reactivity
+                Consumer<ThemeProvider>(
+                  builder: (context, themeProvider, _) {
+                    return IconButton(
+                      icon: Icon(
+                        themeProvider.isDarkMode
+                            ? Icons.light_mode_outlined
+                            : Icons.dark_mode_outlined,
+                      ),
+                      onPressed: () {
+                        // Use Provider.of with listen: false for method calls
+                        Provider.of<ThemeProvider>(context, listen: false)
+                            .toggleTheme();
+                      },
+                    );
                   },
                 ),
               ],
