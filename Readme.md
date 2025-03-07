@@ -1,61 +1,12 @@
-# Project Name
+# React + Vite
 
-## 🚀 Project Description
-A concise, engaging description of your hackathon project.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## 🎯 Link to Project
-[live link of project](live_link)
+Currently, two official plugins are available:
 
-## 🛠 Tech Stack
-- List the primary technologies used
-- Include programming languages, frameworks, and key libraries
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## 📦 Prerequisites
-- List all required software and versions
-- Include installation instructions
-- Example:
-  ```
-  - Node.js (v14+)
-  - npm (v6+)
-  - Python (v3.8+)
-  ```
+## Expanding the ESLint configuration
 
-## 🔧 Installation & Setup
-
-1. Install dependencies
-   ```bash
-   # Frontend
-   cd frontend
-   npm install
-
-   # Backend
-   cd ../backend
-   pip install -r requirements.txt
-   ```
-
-2. Configure Environment Variables
-   
-   - Create a `.env` file
-   - Add necessary configuration details
-     
-   ```
-   API_KEY=your_api_key
-   DATABASE_URL=your_database_connection_string
-   ```
-
-4. Run the Application
-   ```bash
-   # Start frontend
-   npm start
-
-   # Start backend
-   python app.py
-   ```
-
-## Team Members
-  [1.Team Member 1](enter_github_id_here)   
-  [2.Team Member 2](enter_github_id_here)   
-  [3.Team Member 3](enter_github_id_here)   
-  [4.Team Member 4](enter_github_id_here)  
-
-**Made with ❤️ at Beachhack 6**
+If you are developing a production application, we recommend using TypeScript and enable type-aware lint rules. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
