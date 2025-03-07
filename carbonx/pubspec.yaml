@@ -44,6 +44,16 @@ dependencies:
   smooth_page_indicator: ^1.1.0
   flutter_animate: ^4.5.0
   lottie: ^3.1.0
+  
+  # Firebase
+  cloud_firestore: ^4.15.9
+  # Firebase
+  firebase_core: ^2.27.1
+  firebase_auth: ^4.17.9
+  firebase_storage: ^11.6.10
+  
+  google_sign_in: ^6.2.1
+  flutter_signin_button: ^2.0.0
 
 dev_dependencies:
   flutter_test:
