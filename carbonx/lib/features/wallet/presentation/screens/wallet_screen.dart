@@ -88,7 +88,7 @@ class _WalletScreenState extends State<WalletScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Wallet'),
@@ -123,19 +123,19 @@ class _WalletScreenState extends State<WalletScreen> {
                 children: [
                   // Wallet Status Card
                   _buildWalletStatusCard(walletProvider, theme),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   // Wallet Address Card
                   _buildWalletAddressCard(walletProvider, theme),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   // Balance Card
                   _buildBalanceCard(walletProvider, theme),
-                  
+
                   const SizedBox(height: 32),
-                  
+
                   // Action Buttons
                   _buildActionButtons(walletProvider, theme),
                 ],
@@ -224,7 +224,8 @@ class _WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  Widget _buildWalletStatusCard(WalletProvider walletProvider, ThemeData theme) {
+  Widget _buildWalletStatusCard(
+      WalletProvider walletProvider, ThemeData theme) {
     return Card(
       elevation: 0,
       color: Colors.green.shade50,
@@ -276,7 +277,8 @@ class _WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  Widget _buildWalletAddressCard(WalletProvider walletProvider, ThemeData theme) {
+  Widget _buildWalletAddressCard(
+      WalletProvider walletProvider, ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -318,8 +320,8 @@ class _WalletScreenState extends State<WalletScreen> {
                       icon: const Icon(Icons.copy, size: 20),
                       onPressed: () {
                         if (walletProvider.address != null) {
-                          Clipboard.setData(ClipboardData(
-                              text: walletProvider.address!));
+                          Clipboard.setData(
+                              ClipboardData(text: walletProvider.address!));
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('Address copied to clipboard'),
@@ -411,9 +413,11 @@ class _WalletScreenState extends State<WalletScreen> {
                               children: [
                                 Text(
                                   walletProvider.balance != null
-                                      ? _formatEtherAmount(walletProvider.balance!)
+                                      ? _formatEtherAmount(
+                                          walletProvider.balance!)
                                       : '0.000000',
-                                  style: theme.textTheme.headlineSmall?.copyWith(
+                                  style:
+                                      theme.textTheme.headlineSmall?.copyWith(
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
