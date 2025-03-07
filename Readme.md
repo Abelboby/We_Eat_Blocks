@@ -24,7 +24,7 @@ A concise, engaging description of your hackathon project.
 
 1. Install dependencies
    ```bash
-   # Frontend
+   # Frontend 
    cd frontend
    npm install
 
