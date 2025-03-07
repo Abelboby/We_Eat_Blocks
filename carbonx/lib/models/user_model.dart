@@ -11,6 +11,10 @@ class UserModel {
   final int offsetPercentage;
   final String? walletAddress;
   final DateTime? walletConnectedAt;
+  final String? previousWalletAddress;
+  final String? lastWalletAddress;
+  final DateTime? walletReplacedAt;
+  final DateTime? walletDisconnectedAt;
 
   UserModel({
     required this.id,
@@ -25,6 +29,10 @@ class UserModel {
     this.offsetPercentage = 0,
     this.walletAddress,
     this.walletConnectedAt,
+    this.previousWalletAddress,
+    this.lastWalletAddress,
+    this.walletReplacedAt,
+    this.walletDisconnectedAt,
   });
 
   factory UserModel.fromFirebase(dynamic user) {
@@ -67,6 +75,10 @@ class UserModel {
     int? offsetPercentage,
     String? walletAddress,
     DateTime? walletConnectedAt,
+    String? previousWalletAddress,
+    String? lastWalletAddress,
+    DateTime? walletReplacedAt,
+    DateTime? walletDisconnectedAt,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -81,6 +93,11 @@ class UserModel {
       offsetPercentage: offsetPercentage ?? this.offsetPercentage,
       walletAddress: walletAddress ?? this.walletAddress,
       walletConnectedAt: walletConnectedAt ?? this.walletConnectedAt,
+      previousWalletAddress:
+          previousWalletAddress ?? this.previousWalletAddress,
+      lastWalletAddress: lastWalletAddress ?? this.lastWalletAddress,
+      walletReplacedAt: walletReplacedAt ?? this.walletReplacedAt,
+      walletDisconnectedAt: walletDisconnectedAt ?? this.walletDisconnectedAt,
     );
   }
 
@@ -98,6 +115,10 @@ class UserModel {
       'offsetPercentage': offsetPercentage,
       'walletAddress': walletAddress,
       'walletConnectedAt': walletConnectedAt?.millisecondsSinceEpoch,
+      'previousWalletAddress': previousWalletAddress,
+      'lastWalletAddress': lastWalletAddress,
+      'walletReplacedAt': walletReplacedAt?.millisecondsSinceEpoch,
+      'walletDisconnectedAt': walletDisconnectedAt?.millisecondsSinceEpoch,
     };
   }
 
@@ -121,6 +142,14 @@ class UserModel {
       walletConnectedAt: map['walletConnectedAt'] != null
           ? DateTime.fromMillisecondsSinceEpoch(map['walletConnectedAt'])
           : null,
+      previousWalletAddress: map['previousWalletAddress'],
+      lastWalletAddress: map['lastWalletAddress'],
+      walletReplacedAt: map['walletReplacedAt'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['walletReplacedAt'])
+          : null,
+      walletDisconnectedAt: map['walletDisconnectedAt'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['walletDisconnectedAt'])
+          : null,
     );
   }
 
@@ -138,6 +167,10 @@ class UserModel {
       offsetPercentage: map['offsetPercentage'] ?? 0,
       walletAddress: map['walletAddress'],
       walletConnectedAt: map['walletConnectedAt']?.toDate(),
+      previousWalletAddress: map['previousWalletAddress'],
+      lastWalletAddress: map['lastWalletAddress'],
+      walletReplacedAt: map['walletReplacedAt']?.toDate(),
+      walletDisconnectedAt: map['walletDisconnectedAt']?.toDate(),
     );
   }
 
@@ -158,4 +191,6 @@ class UserModel {
 
   bool get isAuthenticated => id.isNotEmpty;
   bool get hasWallet => walletAddress != null && walletAddress!.isNotEmpty;
+  bool get hasReplacedWallet =>
+      previousWalletAddress != null && previousWalletAddress!.isNotEmpty;
 }

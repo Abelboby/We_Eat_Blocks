@@ -258,21 +258,94 @@ class _WalletScreenState extends State<WalletScreen> {
                     ),
                   ),
                   const Spacer(),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () async {
-                        await walletProvider.removeWallet();
-                        if (context.mounted) {
-                          _showSuccessSnackBar('Wallet removed');
-                        }
-                      },
-                      icon: const Icon(Icons.delete),
-                      label: const Text('Remove Wallet'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            final privateKey = await showDialog<String>(
+                              context: context,
+                              builder: (context) => const ImportWalletDialog(
+                                title: 'Replace Wallet',
+                                buttonLabel: 'Replace',
+                              ),
+                            );
+
+                            if (privateKey != null && context.mounted) {
+                              try {
+                                final provider = Provider.of<WalletProvider>(
+                                    context,
+                                    listen: false);
+
+                                await provider.replaceWallet(privateKey);
+
+                                if (context.mounted) {
+                                  if (provider.error != null) {
+                                    _showErrorSnackBar(provider.error!);
+                                  } else {
+                                    _showSuccessSnackBar(
+                                        'Wallet successfully replaced!');
+                                  }
+                                }
+                              } catch (e) {
+                                if (context.mounted) {
+                                  _showErrorSnackBar('Error: $e');
+                                }
+                              }
+                            }
+                          },
+                          icon: const Icon(Icons.swap_horiz),
+                          label: const Text('Replace Wallet'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                          ),
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        flex: 1,
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Remove Wallet'),
+                                content: const Text(
+                                    'Are you sure you want to disconnect this wallet?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.pop(context, false),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () =>
+                                        Navigator.pop(context, true),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.red,
+                                    ),
+                                    child: const Text('Remove'),
+                                  ),
+                                ],
+                              ),
+                            );
+
+                            if (confirm == true && context.mounted) {
+                              await walletProvider.removeWallet();
+                              if (context.mounted) {
+                                _showSuccessSnackBar('Wallet removed');
+                              }
+                            }
+                          },
+                          icon: const Icon(Icons.delete),
+                          label: const Text('Remove'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:web3dart/web3dart.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/services/wallet_service.dart';
 import '../../../services/user_service.dart';
 
@@ -13,6 +14,7 @@ class WalletProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   bool _isBalanceLoading = false;
+  String? _previousAddress;
 
   WalletProvider(this._walletService, this._userService) {
     _initWallet();
@@ -43,6 +45,9 @@ class WalletProvider extends ChangeNotifier {
       _setLoading(true);
       _error = null;
 
+      // Store the current address before changing it
+      _previousAddress = _address;
+
       _credentials = await _walletService.importWallet(privateKey);
       _address = (await _credentials!.extractAddress()).hex;
 
@@ -58,7 +63,36 @@ class WalletProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> _saveWalletAddressToUser() async {
+  /// Replace current wallet with a new one in a single operation
+  Future<void> replaceWallet(String newPrivateKey) async {
+    try {
+      _setLoading(true);
+      _error = null;
+
+      // Store the current address before changing it
+      _previousAddress = _address;
+
+      // First remove the old wallet locally
+      await _walletService.removeWallet();
+
+      // Import the new wallet
+      _credentials = await _walletService.importWallet(newPrivateKey);
+      _address = (await _credentials!.extractAddress()).hex;
+
+      // Update the wallet address in Firebase directly
+      // This avoids setting it to empty temporarily
+      await _saveWalletAddressToUser(isReplacement: true);
+
+      await _updateBalance();
+    } catch (e) {
+      _error = 'Failed to replace wallet: ${e.toString()}';
+      debugPrint(_error);
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> _saveWalletAddressToUser({bool isReplacement = false}) async {
     if (_address == null) return;
 
     final userId = _userService.currentUserId;
@@ -67,9 +101,26 @@ class WalletProvider extends ChangeNotifier {
       return;
     }
 
+    // Skip update if the address hasn't changed
+    if (_previousAddress == _address && !isReplacement) {
+      debugPrint('Wallet address unchanged, skipping Firebase update');
+      return;
+    }
+
     try {
-      await _userService.updateWalletAddress(userId, _address!);
-      debugPrint('Wallet address saved to user document');
+      // For replacements, add additional data about the replacement
+      if (isReplacement && _previousAddress != null) {
+        await _userService.updateUserData(userId, {
+          'walletAddress': _address,
+          'walletConnectedAt': FieldValue.serverTimestamp(),
+          'previousWalletAddress': _previousAddress,
+          'walletReplacedAt': FieldValue.serverTimestamp(),
+        });
+        debugPrint('Wallet address replaced in user document');
+      } else {
+        await _userService.updateWalletAddress(userId, _address!);
+        debugPrint('Wallet address saved to user document');
+      }
     } catch (e) {
       // Just log the error but don't set _error because the wallet import itself succeeded
       debugPrint('Error saving wallet address to user document: $e');
@@ -99,6 +150,10 @@ class WalletProvider extends ChangeNotifier {
   Future<void> removeWallet() async {
     try {
       _setLoading(true);
+
+      // Store previous address before removing
+      _previousAddress = _address;
+
       await _walletService.removeWallet();
 
       // Remove wallet address from user document
@@ -124,7 +179,13 @@ class WalletProvider extends ChangeNotifier {
     }
 
     try {
-      await _userService.updateWalletAddress(userId, '');
+      // Update Firebase with additional historical data
+      await _userService.updateUserData(userId, {
+        'walletAddress': '',
+        'lastWalletAddress':
+            _previousAddress, // Store the last wallet address for history
+        'walletDisconnectedAt': FieldValue.serverTimestamp(),
+      });
       debugPrint('Wallet address removed from user document');
     } catch (e) {
       debugPrint('Error removing wallet address from user document: $e');

@@ -3,7 +3,14 @@ import 'package:flutter/services.dart';
 import './wallet_qr_scanner.dart';
 
 class ImportWalletDialog extends StatefulWidget {
-  const ImportWalletDialog({super.key});
+  final String title;
+  final String buttonLabel;
+
+  const ImportWalletDialog({
+    super.key,
+    this.title = 'Import Wallet',
+    this.buttonLabel = 'Import',
+  });
 
   @override
   State<ImportWalletDialog> createState() => _ImportWalletDialogState();
@@ -54,7 +61,7 @@ class _ImportWalletDialogState extends State<ImportWalletDialog> {
         children: [
           Icon(Icons.account_balance_wallet, color: theme.primaryColor),
           const SizedBox(width: 8),
-          const Text('Import Wallet'),
+          Text(widget.title),
         ],
       ),
       content: SingleChildScrollView(
@@ -136,7 +143,7 @@ class _ImportWalletDialogState extends State<ImportWalletDialog> {
               setState(() => _isPrivateKeyValid = false);
             }
           },
-          child: const Text('Import'),
+          child: Text(widget.buttonLabel),
         ),
       ],
     );
