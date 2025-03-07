@@ -5,6 +5,7 @@ import '../../services/auth_provider.dart';
 import '../../features/wallet/presentation/screens/wallet_screen.dart';
 import '../profile/profile_edit_screen.dart';
 import '../authentication/login_screen.dart';
+import '../../widgets/animated_bar_indicator.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,8 +14,10 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   int _selectedIndex = 0;
+  late AnimationController _animationController;
 
   final List<Widget> _pages = [
     const DashboardPage(),
@@ -24,47 +27,209 @@ class _HomeScreenState extends State<HomeScreen> {
     const ProfilePage(),
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
+    // Add pulse animation when selecting a tab
+    _animationController.reset();
+    _animationController.forward();
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDarkMode = ThemeProvider.of(context).isDarkMode;
+
     return Scaffold(
       body: _pages[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard_outlined),
-            activeIcon: Icon(Icons.dashboard),
-            label: 'Dashboard',
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: isDarkMode
+                  ? Colors.black.withOpacity(0.3)
+                  : Colors.grey.withOpacity(0.3),
+              blurRadius: 10,
+              offset: const Offset(0, -3),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.store_outlined),
-            activeIcon: Icon(Icons.store),
-            label: 'Marketplace',
+          child: CustomBottomNavigationBar(
+            selectedIndex: _selectedIndex,
+            onItemTapped: _onItemTapped,
+            animationController: _animationController,
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.eco_outlined),
-            activeIcon: Icon(Icons.eco),
-            label: 'Projects',
+        ),
+      ),
+    );
+  }
+}
+
+class CustomBottomNavigationBar extends StatelessWidget {
+  final int selectedIndex;
+  final Function(int) onItemTapped;
+  final AnimationController animationController;
+
+  const CustomBottomNavigationBar({
+    super.key,
+    required this.selectedIndex,
+    required this.onItemTapped,
+    required this.animationController,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: theme.scaffoldBackgroundColor,
+        border: Border(
+          top: BorderSide(
+            color: theme.dividerColor.withOpacity(0.3),
+            width: 1,
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_balance_wallet_outlined),
-            activeIcon: Icon(Icons.account_balance_wallet),
-            label: 'Wallet',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
+        ),
+      ),
+      child: SafeArea(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildNavItem(
+              context: context,
+              icon: Icons.dashboard_outlined,
+              activeIcon: Icons.dashboard,
+              label: 'Dashboard',
+              index: 0,
+            ),
+            _buildNavItem(
+              context: context,
+              icon: Icons.store_outlined,
+              activeIcon: Icons.store,
+              label: 'Marketplace',
+              index: 1,
+            ),
+            _buildNavItem(
+              context: context,
+              icon: Icons.eco_outlined,
+              activeIcon: Icons.eco,
+              label: 'Projects',
+              index: 2,
+            ),
+            _buildNavItem(
+              context: context,
+              icon: Icons.account_balance_wallet_outlined,
+              activeIcon: Icons.account_balance_wallet,
+              label: 'Wallet',
+              index: 3,
+            ),
+            _buildNavItem(
+              context: context,
+              icon: Icons.person_outline,
+              activeIcon: Icons.person,
+              label: 'Profile',
+              index: 4,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem({
+    required BuildContext context,
+    required IconData icon,
+    required IconData activeIcon,
+    required String label,
+    required int index,
+  }) {
+    final isSelected = selectedIndex == index;
+    final theme = Theme.of(context);
+
+    // Animation for the selected item
+    Widget iconWidget = Icon(
+      isSelected ? activeIcon : icon,
+      color: isSelected
+          ? theme.colorScheme.primary
+          : theme.colorScheme.onSurface.withOpacity(0.6),
+      size: 24,
+    );
+
+    if (isSelected) {
+      final animation = Tween<double>(begin: 1.0, end: 1.2).animate(
+        CurvedAnimation(
+          parent: animationController,
+          curve: Curves.elasticOut,
+        ),
+      );
+
+      iconWidget = ScaleTransition(
+        scale: animation,
+        child: iconWidget,
+      );
+    }
+
+    return InkWell(
+      onTap: () => onItemTapped(index),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              padding: EdgeInsets.all(isSelected ? 8 : 0),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? theme.colorScheme.primary.withOpacity(0.1)
+                    : Colors.transparent,
+                shape: BoxShape.circle,
+              ),
+              child: iconWidget,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.onSurface.withOpacity(0.6),
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                fontSize: isSelected ? 12 : 11,
+              ),
+            ),
+            const SizedBox(height: 4),
+            AnimatedBarIndicator(
+              isActive: isSelected,
+              color: theme.colorScheme.primary,
+              width: 20,
+              height: 3,
+            ),
+          ],
+        ),
       ),
     );
   }
