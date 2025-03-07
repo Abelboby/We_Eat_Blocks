@@ -1,0 +1,12 @@
+This is a placeholder file. 
+
+To generate the proper favicon files:
+1. Use the SVG file (favicon.svg) to generate PNG versions 
+2. You can use online tools like https://realfavicongenerator.net/
+3. This should generate:
+   - favicon-16x16.png
+   - favicon-32x32.png
+   - apple-touch-icon.png
+   - site.webmanifest
+   
+Then replace this placeholder file with the generated PNGs. 
