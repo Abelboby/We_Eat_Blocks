@@ -54,6 +54,12 @@ dependencies:
   
   google_sign_in: ^6.2.1
   flutter_signin_button: ^2.0.0
+  
+  # Wallet dependencies
+  web3dart: ^2.7.2
+  http: ^1.2.0
+  shared_preferences: ^2.2.2
+  mobile_scanner: ^3.5.5
 
 dev_dependencies:
   flutter_test:

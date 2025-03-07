@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/theme_provider.dart';
 import '../../services/auth_provider.dart';
+import '../../features/wallet/presentation/screens/wallet_screen.dart';
 import '../authentication/login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -18,6 +19,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const DashboardPage(),
     const MarketplacePage(),
     const ProjectsPage(),
+    const WalletScreen(),
     const ProfilePage(),
   ];
 
@@ -50,6 +52,11 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.eco_outlined),
             activeIcon: Icon(Icons.eco),
             label: 'Projects',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_balance_wallet_outlined),
+            activeIcon: Icon(Icons.account_balance_wallet),
+            label: 'Wallet',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
