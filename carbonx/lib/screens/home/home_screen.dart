@@ -219,6 +219,14 @@ class PremiumNavigationBar extends StatelessWidget {
       ],
     );
 
+    // Create a pulsing glow animation controller
+    final glowAnimation = Tween<double>(begin: 0.5, end: 0.8).animate(
+      CurvedAnimation(
+        parent: animationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
     // Animation for the selected item
     Widget iconWidget = AnimatedContainer(
       duration: const Duration(milliseconds: 300),
@@ -234,6 +242,7 @@ class PremiumNavigationBar extends StatelessWidget {
                 : Colors.white,
         boxShadow: isSelected
             ? [
+                // Enhanced shadow for glow effect
                 BoxShadow(
                   color: primaryColor.withOpacity(0.3),
                   blurRadius: 8,
@@ -256,7 +265,8 @@ class PremiumNavigationBar extends StatelessWidget {
     );
 
     if (isSelected) {
-      final animation = TweenSequence<double>([
+      // Scale animation for selection feedback
+      final scaleAnimation = TweenSequence<double>([
         TweenSequenceItem(
           tween: Tween<double>(begin: 1.0, end: 1.2),
           weight: 50,
@@ -272,9 +282,45 @@ class PremiumNavigationBar extends StatelessWidget {
         ),
       );
 
+      // Apply scale animation to icon
       iconWidget = ScaleTransition(
-        scale: animation,
+        scale: scaleAnimation,
         child: iconWidget,
+      );
+
+      // Add additional glowing container when selected
+      iconWidget = Stack(
+        alignment: Alignment.center,
+        children: [
+          // Outer glow layer that pulses with the animation
+          AnimatedBuilder(
+            animation: animationController,
+            builder: (context, child) {
+              return Container(
+                width: containerSize + 16,
+                height: containerSize + 16,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: primaryColor.withOpacity(glowAnimation.value),
+                      blurRadius: 20,
+                      spreadRadius: 3,
+                    ),
+                    BoxShadow(
+                      color:
+                          secondaryColor.withOpacity(glowAnimation.value * 0.5),
+                      blurRadius: 25,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          // The actual icon widget
+          iconWidget,
+        ],
       );
     }
 
