@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NDVI Analyzer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>NDVI Analyzer</h1>
+        <div class="upload-section">
+            <div id="draw-map-container" class="draw-map-container">
+                <h3>Draw Area on Map</h3>
+                <div id="draw-map" class="map"></div>
+                <p class="map-instructions">Click and drag to draw a rectangle on the map</p>
+            </div>
+            <div class="coordinates-input">
+                <h3>Area Coordinates</h3>
+                <div class="coordinate-fields">
+                    <div class="coordinate-set">
+                        <h4>Top-Left Corner</h4>
+                        <div class="coordinate-group">
+                            <input type="number" id="latitude1" placeholder="Latitude" step="any" min="0" max="90">
+                            <select id="latDirection1">
+                                <option value="N">N</option>
+                                <option value="S">S</option>
+                            </select>
+                        </div>
+                        <div class="coordinate-group">
+                            <input type="number" id="longitude1" placeholder="Longitude" step="any" min="0" max="180">
+                            <select id="longDirection1">
+                                <option value="E">E</option>
+                                <option value="W">W</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="coordinate-set">
+                        <h4>Bottom-Right Corner</h4>
+                        <div class="coordinate-group">
+                            <input type="number" id="latitude2" placeholder="Latitude" step="any" min="0" max="90">
+                            <select id="latDirection2">
+                                <option value="N">N</option>
+                                <option value="S">S</option>
+                            </select>
+                        </div>
+                        <div class="coordinate-group">
+                            <input type="number" id="longitude2" placeholder="Longitude" step="any" min="0" max="180">
+                            <select id="longDirection2">
+                                <option value="E">E</option>
+                                <option value="W">W</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="year-input">
+                    <h3>Time Period</h3>
+                    <div class="year-fields">
+                        <div class="year-group">
+                            <label for="startYear">From Year:</label>
+                            <input type="number" id="startYear" min="1990" max="2024" placeholder="e.g., 2000">
+                        </div>
+                        <div class="year-group">
+                            <label for="endYear">To Year:</label>
+                            <input type="number" id="endYear" min="1990" max="2024" placeholder="e.g., 2020">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <input type="file" id="imageInput" accept=".jpg,.jpeg,.png,.tif,.tiff" style="margin-bottom: 10px;">
+            <button onclick="analyzeArea()">Analyze</button>
+        </div>
+        <div id="loading" class="loading hidden">
+            Analyzing image...
+        </div>
+        <div id="results" class="results hidden">
+            <h2>Analysis Results</h2>
+            <div id="resultsContent"></div>
+        </div>
+        <div id="error" class="error hidden"></div>
+        <div id="maps-container" class="maps-container hidden">
+            <div class="map-group">
+                <h3>NDVI Maps</h3>
+                <div class="maps-grid">
+                    <div class="map-item">
+                        <h4 id="start-year-label">Initial NDVI</h4>
+                        <div id="start-map" class="map"></div>
+                    </div>
+                    <div class="map-item">
+                        <h4 id="end-year-label">Final NDVI</h4>
+                        <div id="end-map" class="map"></div>
+                    </div>
+                    <div class="map-item full-width">
+                        <h4>Vegetation Change</h4>
+                        <div id="diff-map" class="map"></div>
+                    </div>
+                </div>
+                <div class="legend">
+                    <div class="legend-item">
+                        <h4>NDVI Values</h4>
+                        <div class="gradient ndvi-gradient"></div>
+                        <div class="legend-labels">
+                            <div class="legend-scale">
+                                <div class="legend-label">No Vegetation</div>
+                                <div class="legend-label">Very Sparse</div>
+                                <div class="legend-label">Sparse</div>
+                                <div class="legend-label">Moderate</div>
+                                <div class="legend-label">Good</div>
+                                <div class="legend-label">Very Good</div>
+                                <div class="legend-label">Dense</div>
+                                <div class="legend-label">Very Dense</div>
+                            </div>
+                            <div class="legend-values">
+                                <span>0.0</span>
+                                <span>0.2</span>
+                                <span>0.4</span>
+                                <span>0.6</span>
+                                <span>0.8</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="legend-item">
+                        <h4>Vegetation Change</h4>
+                        <div class="gradient change-gradient"></div>
+                        <div class="legend-labels">
+                            <div class="legend-scale">
+                                <div class="legend-label">Significant Decrease</div>
+                                <div class="legend-label">Moderate Decrease</div>
+                                <div class="legend-label">Slight Decrease</div>
+                                <div class="legend-label">No Change</div>
+                                <div class="legend-label">Slight Increase</div>
+                                <div class="legend-label">Moderate Increase</div>
+                                <div class="legend-label">Significant Increase</div>
+                            </div>
+                            <div class="legend-values">
+                                <span>-0.3</span>
+                                <span>-0.15</span>
+                                <span>0</span>
+                                <span>0.15</span>
+                                <span>0.3</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html> 

@@ -1,0 +1,237 @@
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.upload-section {
+    margin: 20px 0;
+    padding: 20px;
+    border: 2px dashed #ccc;
+    text-align: center;
+}
+
+.loading {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.results {
+    margin: 20px 0;
+    padding: 20px;
+    border: 1px solid #ccc;
+}
+
+.error {
+    color: red;
+    margin: 20px 0;
+    padding: 10px;
+    border: 1px solid red;
+}
+
+.hidden {
+    display: none;
+}
+
+.coordinates-input {
+    margin: 20px 0;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.coordinate-fields {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.coordinate-group {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.coordinate-group input {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 120px;
+}
+
+.coordinate-group select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 50px;
+}
+
+.year-input {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.year-fields {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.year-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+}
+
+.year-group input {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100px;
+}
+
+.year-group label {
+    font-size: 14px;
+    color: #666;
+}
+
+.coordinate-set {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 15px;
+    border: 1px solid #eee;
+    border-radius: 4px;
+}
+
+.coordinate-set h4 {
+    margin: 0 0 10px 0;
+    color: #666;
+}
+
+.maps-container {
+    margin: 20px 0;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.maps-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.map-item {
+    text-align: center;
+}
+
+.map-item.full-width {
+    grid-column: 1 / -1;
+}
+
+.map {
+    height: 300px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.legend {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f5f5f5;
+    border-radius: 4px;
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+}
+
+.legend-item {
+    text-align: center;
+}
+
+.gradient {
+    height: 20px;
+    width: 200px;
+    margin: 10px 0;
+    border-radius: 2px;
+}
+
+.ndvi-gradient {
+    background: linear-gradient(to right, 
+        #d73027,
+        #f46d43,
+        #fdae61,
+        #fee08b,
+        #d9ef8b,
+        #a6d96a,
+        #66bd63,
+        #1a9850
+    );
+}
+
+.change-gradient {
+    background: linear-gradient(to right,
+        #d73027,
+        #f46d43,
+        #fdae61,
+        #ffffff,
+        #a6d96a,
+        #66bd63,
+        #1a9850
+    );
+}
+
+.legend-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #666;
+}
+
+.legend-scale {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 10px;
+    font-size: 12px;
+}
+
+.legend-values {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+    font-size: 11px;
+    color: #666;
+}
+
+.legend-label {
+    text-align: left;
+    color: #444;
+}
+
+.draw-map-container {
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.draw-map-container .map {
+    height: 400px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.map-instructions {
+    text-align: center;
+    color: #666;
+    font-size: 14px;
+    margin: 10px 0 0 0;
+} 
