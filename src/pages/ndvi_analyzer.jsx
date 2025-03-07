@@ -145,6 +145,86 @@ const NDVITileLayer = ({ url, attribution }) => {
   );
 };
 
+// Display a more user-friendly error message component
+const ErrorDisplay = ({ error, onDismiss }) => {
+  if (!error) return null;
+  
+  // Determine the error type and provide specific guidance
+  let errorTitle = "Error";
+  let suggestion = null;
+  
+  if (error.includes("CORS")) {
+    errorTitle = "Server Access Error";
+    suggestion = (
+      <>
+        <p className="mb-1">The server is blocking requests from this website. Possible solutions:</p>
+        <ul className="list-disc list-inside pl-2">
+          <li>Ask the server administrator to allow requests from this domain</li>
+          <li>Try accessing from a different browser or connection</li>
+          <li>Check if the server is configured properly for CORS</li>
+        </ul>
+      </>
+    );
+  } else if (error.includes("Failed to fetch") || error.includes("Cannot connect")) {
+    errorTitle = "Connection Error";
+    suggestion = (
+      <>
+        <p className="mb-1">Unable to connect to the analysis server. Possible solutions:</p>
+        <ul className="list-disc list-inside pl-2">
+          <li>Check if the server is running and accessible</li>
+          <li>Ensure your internet connection is working</li>
+          <li>The server might be temporarily down, try again later</li>
+        </ul>
+      </>
+    );
+  } else if (error.includes("coordinates") || error.includes("latitude") || error.includes("longitude")) {
+    errorTitle = "Invalid Coordinates";
+    suggestion = (
+      <p>Please check that your coordinates are valid and in the correct format.</p>
+    );
+  }
+  
+  return (
+    <motion.div 
+      className="bg-red-500/10 border border-red-500/50 text-red-200 px-4 py-3 rounded-xl mb-6"
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <div className="flex items-start">
+        <div className="flex-shrink-0">
+          <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+          </svg>
+        </div>
+        <div className="ml-3 w-full">
+          <div className="flex justify-between">
+            <h3 className="text-sm font-medium text-red-300">{errorTitle}</h3>
+            {onDismiss && (
+              <button 
+                onClick={onDismiss} 
+                className="text-red-300 hover:text-red-100"
+              >
+                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            )}
+          </div>
+          <div className="mt-1 text-sm text-red-200">
+            <p>{error}</p>
+            {suggestion && (
+              <div className="mt-2 text-xs">
+                {suggestion}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
 const NDVIAnalyzer = () => {
   // State for coordinates
   const [coordinates, setCoordinates] = useState({
@@ -270,9 +350,10 @@ const NDVIAnalyzer = () => {
       );
       
       setResults(result);
+      setIsLoading(false);
     } catch (err) {
-      setError(err.message || 'Failed to analyze NDVI');
-    } finally {
+      console.error('Analysis error:', err);
+      setError(err.message || 'Failed to analyze area');
       setIsLoading(false);
     }
   };
@@ -503,11 +584,8 @@ const NDVIAnalyzer = () => {
               {isLoading ? 'Analyzing...' : 'Analyze Vegetation'}
             </motion.button>
             
-            {error && (
-              <div className="mt-4 p-4 bg-red-800/30 text-red-200 rounded-xl">
-                {error}
-              </div>
-            )}
+            {/* Display error message if any */}
+            {error && <ErrorDisplay error={error} onDismiss={() => setError(null)} />}
           </form>
         </motion.div>
         
