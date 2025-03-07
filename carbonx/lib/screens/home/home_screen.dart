@@ -6,6 +6,7 @@ import '../../features/wallet/presentation/screens/wallet_screen.dart';
 import '../profile/profile_edit_screen.dart';
 import '../authentication/login_screen.dart';
 import '../../widgets/animated_bar_indicator.dart';
+import 'dart:ui';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -32,7 +33,7 @@ class _HomeScreenState extends State<HomeScreen>
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 400),
     );
   }
 
@@ -55,104 +56,136 @@ class _HomeScreenState extends State<HomeScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDarkMode = ThemeProvider.of(context).isDarkMode;
+    final size = MediaQuery.of(context).size;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return Scaffold(
       body: _pages[_selectedIndex],
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: isDarkMode
-                  ? Colors.black.withOpacity(0.3)
-                  : Colors.grey.withOpacity(0.3),
-              blurRadius: 10,
-              offset: const Offset(0, -3),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
-          ),
-          child: CustomBottomNavigationBar(
-            selectedIndex: _selectedIndex,
-            onItemTapped: _onItemTapped,
-            animationController: _animationController,
-          ),
+      extendBody: true, // Important for the floating effect
+      bottomNavigationBar: Padding(
+        padding: EdgeInsets.only(
+            // Lift navbar higher by increasing the bottom padding
+            bottom: bottomPadding > 0 ? 6.0 : 14.0,
+            left: 16.0,
+            right: 16.0),
+        child: PremiumNavigationBar(
+          selectedIndex: _selectedIndex,
+          onItemTapped: _onItemTapped,
+          animationController: _animationController,
+          isDarkMode: isDarkMode,
         ),
       ),
     );
   }
 }
 
-class CustomBottomNavigationBar extends StatelessWidget {
+class PremiumNavigationBar extends StatelessWidget {
   final int selectedIndex;
   final Function(int) onItemTapped;
   final AnimationController animationController;
+  final bool isDarkMode;
 
-  const CustomBottomNavigationBar({
+  const PremiumNavigationBar({
     super.key,
     required this.selectedIndex,
     required this.onItemTapped,
     required this.animationController,
+    required this.isDarkMode,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final size = MediaQuery.of(context).size;
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      decoration: BoxDecoration(
-        color: theme.scaffoldBackgroundColor,
-        border: Border(
-          top: BorderSide(
-            color: theme.dividerColor.withOpacity(0.3),
-            width: 1,
+    // Reduce height to address overflow
+    final navHeight = bottomPadding > 0 ? 68.0 : 76.0;
+
+    // Create a glass effect container
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(28),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+        child: Container(
+          height: navHeight,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDarkMode
+                  ? [
+                      AppTheme.primaryDark.withOpacity(0.7),
+                      AppTheme.secondaryDark.withOpacity(0.85),
+                    ]
+                  : [
+                      Colors.white.withOpacity(0.7),
+                      Colors.white.withOpacity(0.85),
+                    ],
+            ),
+            borderRadius: BorderRadius.circular(28),
+            boxShadow: [
+              BoxShadow(
+                color: isDarkMode
+                    ? Colors.black.withOpacity(0.3)
+                    : Colors.grey.withOpacity(0.3),
+                blurRadius: 15,
+                offset: const Offset(0, 5),
+              ),
+            ],
+            border: Border.all(
+              color: isDarkMode
+                  ? AppTheme.textPrimary.withOpacity(0.12)
+                  : Colors.white.withOpacity(0.6),
+              width: 1.5,
+            ),
           ),
-        ),
-      ),
-      child: SafeArea(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(
-              context: context,
-              icon: Icons.dashboard_outlined,
-              activeIcon: Icons.dashboard,
-              label: 'Dashboard',
-              index: 0,
+          child: SafeArea(
+            top: false,
+            bottom: false,
+            minimum: EdgeInsets.zero,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildNavItem(
+                  context: context,
+                  icon: Icons.dashboard_outlined,
+                  activeIcon: Icons.dashboard_rounded,
+                  label: 'Dashboard',
+                  index: 0,
+                ),
+                _buildNavItem(
+                  context: context,
+                  icon: Icons.store_outlined,
+                  activeIcon: Icons.store_rounded,
+                  label: 'Market',
+                  index: 1,
+                ),
+                _buildNavItem(
+                  context: context,
+                  icon: Icons.eco_outlined,
+                  activeIcon: Icons.eco_rounded,
+                  label: 'Projects',
+                  index: 2,
+                ),
+                _buildNavItem(
+                  context: context,
+                  icon: Icons.account_balance_wallet_outlined,
+                  activeIcon: Icons.account_balance_wallet_rounded,
+                  label: 'Wallet',
+                  index: 3,
+                ),
+                _buildNavItem(
+                  context: context,
+                  icon: Icons.person_outline_rounded,
+                  activeIcon: Icons.person_rounded,
+                  label: 'Profile',
+                  index: 4,
+                ),
+              ],
             ),
-            _buildNavItem(
-              context: context,
-              icon: Icons.store_outlined,
-              activeIcon: Icons.store,
-              label: 'Marketplace',
-              index: 1,
-            ),
-            _buildNavItem(
-              context: context,
-              icon: Icons.eco_outlined,
-              activeIcon: Icons.eco,
-              label: 'Projects',
-              index: 2,
-            ),
-            _buildNavItem(
-              context: context,
-              icon: Icons.account_balance_wallet_outlined,
-              activeIcon: Icons.account_balance_wallet,
-              label: 'Wallet',
-              index: 3,
-            ),
-            _buildNavItem(
-              context: context,
-              icon: Icons.person_outline,
-              activeIcon: Icons.person,
-              label: 'Profile',
-              index: 4,
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -167,21 +200,74 @@ class CustomBottomNavigationBar extends StatelessWidget {
   }) {
     final isSelected = selectedIndex == index;
     final theme = Theme.of(context);
+    final primaryColor = AppTheme.accentTeal;
+    final secondaryColor = AppTheme.accentLime;
+    final size = MediaQuery.of(context).size;
+
+    // Further reduce icon size for smaller devices
+    final iconSize = size.width < 360 ? 21.0 : 24.0;
+    final containerSize = size.width < 360 ? 44.0 : 48.0;
+
+    // Create gradient color for selected items
+    final selectedGradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        primaryColor,
+        secondaryColor,
+      ],
+    );
 
     // Animation for the selected item
-    Widget iconWidget = Icon(
-      isSelected ? activeIcon : icon,
-      color: isSelected
-          ? theme.colorScheme.primary
-          : theme.colorScheme.onSurface.withOpacity(0.6),
-      size: 24,
+    Widget iconWidget = AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      height: containerSize,
+      width: containerSize,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: isSelected ? selectedGradient : null,
+        color: isSelected
+            ? null
+            : isDarkMode
+                ? AppTheme.secondaryDark.withOpacity(0.7)
+                : Colors.white,
+        boxShadow: isSelected
+            ? [
+                BoxShadow(
+                  color: primaryColor.withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ]
+            : null,
+      ),
+      child: Icon(
+        isSelected ? activeIcon : icon,
+        color: isSelected
+            ? isDarkMode
+                ? AppTheme.primaryDark
+                : Colors.white
+            : isDarkMode
+                ? AppTheme.textPrimary.withOpacity(0.7)
+                : AppTheme.textPrimaryLight.withOpacity(0.7),
+        size: iconSize,
+      ),
     );
 
     if (isSelected) {
-      final animation = Tween<double>(begin: 1.0, end: 1.2).animate(
+      final animation = TweenSequence<double>([
+        TweenSequenceItem(
+          tween: Tween<double>(begin: 1.0, end: 1.2),
+          weight: 50,
+        ),
+        TweenSequenceItem(
+          tween: Tween<double>(begin: 1.2, end: 1.0),
+          weight: 50,
+        ),
+      ]).animate(
         CurvedAnimation(
           parent: animationController,
-          curve: Curves.elasticOut,
+          curve: Curves.easeInOut,
         ),
       );
 
@@ -191,43 +277,37 @@ class CustomBottomNavigationBar extends StatelessWidget {
       );
     }
 
+    // Use smaller font on smaller screens
+    final fontSize = size.width < 360 ? 9.0 : 10.0;
+
     return InkWell(
       onTap: () => onItemTapped(index),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      customBorder: const CircleBorder(),
+      splashColor: primaryColor.withOpacity(0.1),
+      highlightColor: primaryColor.withOpacity(0.2),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeInOut,
-              padding: EdgeInsets.all(isSelected ? 8 : 0),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? theme.colorScheme.primary.withOpacity(0.1)
-                    : Colors.transparent,
-                shape: BoxShape.circle,
+            iconWidget,
+            if (!isSelected) // Only show label if not selected for cleaner UI
+              Padding(
+                padding: const EdgeInsets.only(top: 2.0),
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: isDarkMode
+                        ? AppTheme.textSecondary
+                        : AppTheme.textSecondaryLight,
+                    fontWeight: FontWeight.w500,
+                    fontSize: fontSize,
+                    height: 1.0, // Reduce line height as much as possible
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-              child: iconWidget,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.onSurface.withOpacity(0.6),
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                fontSize: isSelected ? 12 : 11,
-              ),
-            ),
-            const SizedBox(height: 4),
-            AnimatedBarIndicator(
-              isActive: isSelected,
-              color: theme.colorScheme.primary,
-              width: 20,
-              height: 3,
-            ),
           ],
         ),
       ),

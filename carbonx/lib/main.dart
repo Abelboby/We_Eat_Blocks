@@ -62,6 +62,7 @@ class CarbonXApp extends StatelessWidget {
         return MaterialApp(
           title: 'CarbonX',
           theme: themeProvider.themeData,
+          themeMode: themeProvider.themeMode,
           debugShowCheckedModeBanner: false,
           home: Consumer<AuthProvider>(
             builder: (context, authProvider, _) {
