@@ -57,6 +57,8 @@ const DrawControls = ({ onRectangleDrawn }) => {
             fillOpacity: 0.3,
             fillColor: '#76EAD7'
           },
+          metric: true,
+          showArea: false,
         },
       },
       edit: {
@@ -76,22 +78,30 @@ const DrawControls = ({ onRectangleDrawn }) => {
         
         const bounds = layer.getBounds();
         
-        // Ensure coordinates are properly ordered (North > South, East > West)
-        const north = bounds.getNorth();
-        const south = bounds.getSouth();
-        const east = bounds.getEast();
-        const west = bounds.getWest();
+        // Ensure coordinates are properly ordered and within valid ranges
+        let north = bounds.getNorth();
+        let south = bounds.getSouth();
+        let east = bounds.getEast();
+        let west = bounds.getWest();
+        
+        // Normalize longitude values to be within -180 to 180
+        east = ((east + 180) % 360) - 180;
+        west = ((west + 180) % 360) - 180;
+        
+        // Ensure coordinates are within valid ranges
+        north = Math.min(Math.max(north, -90), 90);
+        south = Math.min(Math.max(south, -90), 90);
         
         // Make sure there's a small difference if the coordinates are very close
-        const minDifference = 0.0000001; // Small threshold to ensure difference
+        const minDifference = 0.0000001;
         
         // If north and south are too close or equal, adjust them slightly
-        const adjustedNorth = north === south ? north + minDifference : north;
-        const adjustedSouth = north === south ? south - minDifference : south;
+        const adjustedNorth = north === south ? Math.min(north + minDifference, 90) : north;
+        const adjustedSouth = north === south ? Math.max(south - minDifference, -90) : south;
         
         // Similarly for east and west
-        const adjustedEast = east === west ? east + minDifference : east;
-        const adjustedWest = east === west ? west - minDifference : west;
+        const adjustedEast = east === west ? Math.min(east + minDifference, 180) : east;
+        const adjustedWest = east === west ? Math.max(west - minDifference, -180) : west;
         
         onRectangleDrawn({
           north: adjustedNorth,
@@ -105,6 +115,12 @@ const DrawControls = ({ onRectangleDrawn }) => {
     // Event handler for when a rectangle is deleted
     map.on(L.Draw.Event.DELETED, () => {
       drawnItems.clearLayers();
+      setCoordinates({
+        north: '',
+        south: '',
+        east: '',
+        west: '',
+      });
     });
     
     return () => {
@@ -171,11 +187,26 @@ const NDVIAnalyzer = () => {
   const handleCoordinateChange = (e) => {
     const { name, value } = e.target;
     
+    // Convert value to number for validation
+    const numValue = parseFloat(value);
+    
+    // Validate coordinates based on their type
+    let validatedValue = value;
+    if (!isNaN(numValue)) {
+      if (name === 'north' || name === 'south') {
+        // Latitude must be between -90 and 90
+        validatedValue = Math.min(Math.max(numValue, -90), 90);
+      } else if (name === 'east' || name === 'west') {
+        // Longitude must be between -180 and 180
+        validatedValue = ((numValue + 180) % 360) - 180;
+      }
+    }
+    
     // Update the coordinates state
     setCoordinates((prev) => {
       const newCoordinates = {
         ...prev,
-        [name]: value,
+        [name]: validatedValue.toString(),
       };
       
       // Clear any previous errors when coordinates are changed
