@@ -367,60 +367,303 @@ class DashboardPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDarkMode = Provider.of<ThemeProvider>(context).isDarkMode;
+
     return Scaffold(
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverAppBar(
-              pinned: true,
-              title: const Text('Dashboard'),
-              actions: [
-                // Use Consumer to properly listen to ThemeProvider changes
-                Consumer<ThemeProvider>(
-                  builder: (context, themeProvider, _) {
-                    return IconButton(
-                      icon: Icon(
-                        themeProvider.isDarkMode
-                            ? Icons.light_mode_outlined
-                            : Icons.dark_mode_outlined,
-                      ),
-                      onPressed: () {
-                        // Use Provider.of with listen: false for method calls
-                        Provider.of<ThemeProvider>(context, listen: false)
-                            .toggleTheme();
-                      },
-                    );
-                  },
-                ),
-              ],
-            ),
-            SliverFillRemaining(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.dashboard_customize_outlined,
-                      size: 64,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(height: AppTheme.spacing4),
-                    Text(
-                      'Dashboard Coming Soon',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    const SizedBox(height: AppTheme.spacing2),
-                    Text(
-                      'Track your carbon footprint and eco-friendly activities',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                      textAlign: TextAlign.center,
-                    ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: isDarkMode
+                ? [
+                    AppTheme.primaryDark,
+                    AppTheme.secondaryDark,
+                  ]
+                : [
+                    AppTheme.lightBackground,
+                    Colors.white,
                   ],
+          ),
+        ),
+        child: SafeArea(
+          child: CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                pinned: true,
+                title: const Text('Dashboard'),
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                actions: [
+                  // Use Consumer to properly listen to ThemeProvider changes
+                  Consumer<ThemeProvider>(
+                    builder: (context, themeProvider, _) {
+                      return IconButton(
+                        icon: Icon(
+                          themeProvider.isDarkMode
+                              ? Icons.light_mode_outlined
+                              : Icons.dark_mode_outlined,
+                        ),
+                        onPressed: () {
+                          // Use Provider.of with listen: false for method calls
+                          Provider.of<ThemeProvider>(context, listen: false)
+                              .toggleTheme();
+                        },
+                      );
+                    },
+                  ),
+                ],
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSectionHeader(
+                        icon: Icons.dashboard,
+                        title: 'Dashboard Overview',
+                        isDarkMode: isDarkMode,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildPremiumCard(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          AppTheme.accentTeal.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Icon(
+                                      Icons.dashboard_customize_outlined,
+                                      size: 28,
+                                      color: AppTheme.accentTeal,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Dashboard Coming Soon',
+                                          style: theme.textTheme.titleLarge,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Track your carbon footprint and eco-friendly activities',
+                                          style: theme.textTheme.bodyMedium
+                                              ?.copyWith(
+                                            color: isDarkMode
+                                                ? AppTheme.textSecondary
+                                                : AppTheme.textSecondaryLight,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        isDarkMode: isDarkMode,
+                      ),
+                      const SizedBox(height: 24),
+                      _buildSectionHeader(
+                        icon: Icons.insights,
+                        title: 'Your Carbon Stats',
+                        isDarkMode: isDarkMode,
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildPremiumCard(
+                              child: _buildStatCard(
+                                icon: Icons.eco,
+                                title: 'Carbon Savings',
+                                value: '0.0 Tonnes',
+                                isDarkMode: isDarkMode,
+                                iconColor: AppTheme.accentLime,
+                              ),
+                              isDarkMode: isDarkMode,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildPremiumCard(
+                              child: _buildStatCard(
+                                icon: Icons.account_balance,
+                                title: 'Credits Owned',
+                                value: '0',
+                                isDarkMode: isDarkMode,
+                                iconColor: AppTheme.accentTeal,
+                              ),
+                              isDarkMode: isDarkMode,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      _buildPremiumCard(
+                        child: _buildStatCard(
+                          icon: Icons.timeline,
+                          title: 'Carbon Footprint Reduction',
+                          value: '0%',
+                          subtitle: 'Start tracking to see your progress',
+                          isDarkMode: isDarkMode,
+                          iconColor: Colors.orange,
+                          isWide: true,
+                        ),
+                        isDarkMode: isDarkMode,
+                      ),
+                      const SizedBox(height: 24),
+                      _buildSectionHeader(
+                        icon: Icons.access_time,
+                        title: 'Recent Activity',
+                        isDarkMode: isDarkMode,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildPremiumCard(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.history,
+                                size: 40,
+                                color: isDarkMode
+                                    ? AppTheme.textSecondary
+                                    : AppTheme.textSecondaryLight,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No Recent Activity',
+                                style: theme.textTheme.titleMedium,
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Your recent actions will appear here',
+                                style: theme.textTheme.bodySmall,
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                        isDarkMode: isDarkMode,
+                      ),
+                      const SizedBox(height: 24),
+                      _buildPremiumActionButton(
+                        icon: Icons.play_arrow_rounded,
+                        label: 'Start Tracking Carbon Footprint',
+                        color: AppTheme.accentTeal,
+                        isDarkMode: isDarkMode,
+                        isFilled: true,
+                        isWide: true,
+                        onPressed: () {
+                          // Coming soon functionality
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Coming soon!'),
+                              backgroundColor: AppTheme.accentTeal,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatCard({
+    required IconData icon,
+    required String title,
+    required String value,
+    String? subtitle,
+    required bool isDarkMode,
+    required Color iconColor,
+    bool isWide = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: iconColor.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  icon,
+                  size: 16,
+                  color: iconColor,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isDarkMode
+                        ? AppTheme.textSecondary
+                        : AppTheme.textSecondaryLight,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: isWide ? 24 : 20,
+              fontWeight: FontWeight.bold,
+              color:
+                  isDarkMode ? AppTheme.textPrimary : AppTheme.textPrimaryLight,
+            ),
+          ),
+          if (subtitle != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 12,
+                color: isDarkMode
+                    ? AppTheme.textSecondary
+                    : AppTheme.textSecondaryLight,
               ),
             ),
           ],
-        ),
+        ],
       ),
     );
   }
@@ -431,60 +674,257 @@ class MarketplacePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDarkMode = Provider.of<ThemeProvider>(context).isDarkMode;
+
     return Scaffold(
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverAppBar(
-              pinned: true,
-              title: const Text('Marketplace'),
-              actions: [
-                // Use Consumer to properly listen to ThemeProvider changes
-                Consumer<ThemeProvider>(
-                  builder: (context, themeProvider, _) {
-                    return IconButton(
-                      icon: Icon(
-                        themeProvider.isDarkMode
-                            ? Icons.light_mode_outlined
-                            : Icons.dark_mode_outlined,
-                      ),
-                      onPressed: () {
-                        // Use Provider.of with listen: false for method calls
-                        Provider.of<ThemeProvider>(context, listen: false)
-                            .toggleTheme();
-                      },
-                    );
-                  },
-                ),
-              ],
-            ),
-            SliverFillRemaining(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.shopping_cart_outlined,
-                      size: 64,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(height: AppTheme.spacing4),
-                    Text(
-                      'Marketplace Coming Soon',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    const SizedBox(height: AppTheme.spacing2),
-                    Text(
-                      'Buy and sell carbon credits',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                      textAlign: TextAlign.center,
-                    ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: isDarkMode
+                ? [
+                    AppTheme.primaryDark,
+                    AppTheme.secondaryDark,
+                  ]
+                : [
+                    AppTheme.lightBackground,
+                    Colors.white,
                   ],
+          ),
+        ),
+        child: SafeArea(
+          child: CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                pinned: true,
+                title: const Text('Marketplace'),
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                actions: [
+                  // Use Consumer to properly listen to ThemeProvider changes
+                  Consumer<ThemeProvider>(
+                    builder: (context, themeProvider, _) {
+                      return IconButton(
+                        icon: Icon(
+                          themeProvider.isDarkMode
+                              ? Icons.light_mode_outlined
+                              : Icons.dark_mode_outlined,
+                        ),
+                        onPressed: () {
+                          // Use Provider.of with listen: false for method calls
+                          Provider.of<ThemeProvider>(context, listen: false)
+                              .toggleTheme();
+                        },
+                      );
+                    },
+                  ),
+                ],
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSectionHeader(
+                        icon: Icons.store,
+                        title: 'Carbon Credit Marketplace',
+                        isDarkMode: isDarkMode,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildPremiumCard(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.accentTeal.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(100),
+                                ),
+                                child: Icon(
+                                  Icons.shopping_cart_outlined,
+                                  size: 64,
+                                  color: AppTheme.accentTeal,
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              Text(
+                                'Marketplace Coming Soon',
+                                style: theme.textTheme.headlineSmall,
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Buy and sell carbon credits on our secure platform. Trade with confidence and contribute to a greener future.',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: isDarkMode
+                                      ? AppTheme.textSecondary
+                                      : AppTheme.textSecondaryLight,
+                                  height: 1.5,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                        isDarkMode: isDarkMode,
+                      ),
+                      const SizedBox(height: 24),
+                      _buildSectionHeader(
+                        icon: Icons.trending_up,
+                        title: 'Market Trends',
+                        isDarkMode: isDarkMode,
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildPremiumCard(
+                              child: _buildMarketTrendCard(
+                                title: 'Carbon Credit Price',
+                                value: '\$25.00',
+                                trend: '+2.5%',
+                                isDarkMode: isDarkMode,
+                                isPositive: true,
+                              ),
+                              isDarkMode: isDarkMode,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildPremiumCard(
+                              child: _buildMarketTrendCard(
+                                title: 'Market Volume',
+                                value: '1.2M',
+                                trend: '+5.7%',
+                                isDarkMode: isDarkMode,
+                                isPositive: true,
+                              ),
+                              isDarkMode: isDarkMode,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      _buildSectionHeader(
+                        icon: Icons.notifications_outlined,
+                        title: 'Get Notified',
+                        isDarkMode: isDarkMode,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildPremiumCard(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Marketplace Launch Alert',
+                                style: theme.textTheme.titleMedium,
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Be the first to know when our marketplace launches. Get early access and exclusive deals.',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: isDarkMode
+                                      ? AppTheme.textSecondary
+                                      : AppTheme.textSecondaryLight,
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              _buildPremiumActionButton(
+                                icon: Icons.notifications_active_outlined,
+                                label: 'Notify Me',
+                                color: AppTheme.accentTeal,
+                                isDarkMode: isDarkMode,
+                                isFilled: true,
+                                isWide: true,
+                                onPressed: () {
+                                  // Coming soon functionality
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                          'You\'ll be notified when the marketplace launches!'),
+                                      backgroundColor: AppTheme.accentTeal,
+                                      behavior: SnackBarBehavior.floating,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                        isDarkMode: isDarkMode,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildMarketTrendCard({
+    required String title,
+    required String value,
+    required String trend,
+    required bool isDarkMode,
+    required bool isPositive,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 14,
+              color: isDarkMode
+                  ? AppTheme.textSecondary
+                  : AppTheme.textSecondaryLight,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color:
+                  isDarkMode ? AppTheme.textPrimary : AppTheme.textPrimaryLight,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Icon(
+                isPositive ? Icons.arrow_upward : Icons.arrow_downward,
+                size: 14,
+                color: isPositive ? Colors.green : Colors.red,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                trend,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: isPositive ? Colors.green : Colors.red,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -495,63 +935,527 @@ class ProjectsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDarkMode = Provider.of<ThemeProvider>(context).isDarkMode;
+
     return Scaffold(
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverAppBar(
-              pinned: true,
-              title: const Text('Projects'),
-              actions: [
-                // Use Consumer to properly listen to ThemeProvider changes
-                Consumer<ThemeProvider>(
-                  builder: (context, themeProvider, _) {
-                    return IconButton(
-                      icon: Icon(
-                        themeProvider.isDarkMode
-                            ? Icons.light_mode_outlined
-                            : Icons.dark_mode_outlined,
-                      ),
-                      onPressed: () {
-                        // Use Provider.of with listen: false for method calls
-                        Provider.of<ThemeProvider>(context, listen: false)
-                            .toggleTheme();
-                      },
-                    );
-                  },
-                ),
-              ],
-            ),
-            SliverFillRemaining(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.eco_outlined,
-                      size: 64,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(height: AppTheme.spacing4),
-                    Text(
-                      'Projects Coming Soon',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    const SizedBox(height: AppTheme.spacing2),
-                    Text(
-                      'Explore and support eco-friendly projects',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                      textAlign: TextAlign.center,
-                    ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: isDarkMode
+                ? [
+                    AppTheme.primaryDark,
+                    AppTheme.secondaryDark,
+                  ]
+                : [
+                    AppTheme.lightBackground,
+                    Colors.white,
                   ],
+          ),
+        ),
+        child: SafeArea(
+          child: CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                pinned: true,
+                title: const Text('Projects'),
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                actions: [
+                  // Use Consumer to properly listen to ThemeProvider changes
+                  Consumer<ThemeProvider>(
+                    builder: (context, themeProvider, _) {
+                      return IconButton(
+                        icon: Icon(
+                          themeProvider.isDarkMode
+                              ? Icons.light_mode_outlined
+                              : Icons.dark_mode_outlined,
+                        ),
+                        onPressed: () {
+                          // Use Provider.of with listen: false for method calls
+                          Provider.of<ThemeProvider>(context, listen: false)
+                              .toggleTheme();
+                        },
+                      );
+                    },
+                  ),
+                ],
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSectionHeader(
+                        icon: Icons.eco,
+                        title: 'Environmental Projects',
+                        isDarkMode: isDarkMode,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildPremiumCard(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.accentLime.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(100),
+                                ),
+                                child: Icon(
+                                  Icons.eco_outlined,
+                                  size: 64,
+                                  color: AppTheme.accentLime,
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              Text(
+                                'Projects Coming Soon',
+                                style: theme.textTheme.headlineSmall,
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Explore and support eco-friendly projects that make a real difference. Contribute to verified carbon offset initiatives around the world.',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: isDarkMode
+                                      ? AppTheme.textSecondary
+                                      : AppTheme.textSecondaryLight,
+                                  height: 1.5,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                        isDarkMode: isDarkMode,
+                      ),
+                      const SizedBox(height: 24),
+                      _buildSectionHeader(
+                        icon: Icons.category_outlined,
+                        title: 'Project Categories',
+                        isDarkMode: isDarkMode,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildProjectCategoryCard(
+                        title: 'Reforestation',
+                        description:
+                            'Tree planting and forest restoration projects',
+                        icon: Icons.forest,
+                        color: Colors.green.shade700,
+                        isDarkMode: isDarkMode,
+                      ),
+                      const SizedBox(height: 12),
+                      _buildProjectCategoryCard(
+                        title: 'Renewable Energy',
+                        description:
+                            'Solar, wind, and other clean energy initiatives',
+                        icon: Icons.solar_power,
+                        color: Colors.amber.shade700,
+                        isDarkMode: isDarkMode,
+                      ),
+                      const SizedBox(height: 12),
+                      _buildProjectCategoryCard(
+                        title: 'Ocean Conservation',
+                        description:
+                            'Protecting marine ecosystems and reducing pollution',
+                        icon: Icons.water,
+                        color: Colors.blue.shade700,
+                        isDarkMode: isDarkMode,
+                      ),
+                      const SizedBox(height: 24),
+                      _buildSectionHeader(
+                        icon: Icons.location_on_outlined,
+                        title: 'Featured Locations',
+                        isDarkMode: isDarkMode,
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        height: 120,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          children: [
+                            _buildLocationCard(
+                              name: 'Amazon Rainforest',
+                              country: 'Brazil',
+                              assetImage: null, // Replace with actual asset
+                              isDarkMode: isDarkMode,
+                            ),
+                            const SizedBox(width: 12),
+                            _buildLocationCard(
+                              name: 'Great Barrier Reef',
+                              country: 'Australia',
+                              assetImage: null, // Replace with actual asset
+                              isDarkMode: isDarkMode,
+                            ),
+                            const SizedBox(width: 12),
+                            _buildLocationCard(
+                              name: 'Borneo',
+                              country: 'Indonesia',
+                              assetImage: null, // Replace with actual asset
+                              isDarkMode: isDarkMode,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      _buildPremiumActionButton(
+                        icon: Icons.notifications_active_outlined,
+                        label: 'Get Notified When Projects Launch',
+                        color: AppTheme.accentLime,
+                        isDarkMode: isDarkMode,
+                        isFilled: true,
+                        isWide: true,
+                        onPressed: () {
+                          // Coming soon functionality
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                  'You\'ll be notified when projects launch!'),
+                              backgroundColor: AppTheme.accentLime,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
+
+  Widget _buildProjectCategoryCard({
+    required String title,
+    required String description,
+    required IconData icon,
+    required Color color,
+    required bool isDarkMode,
+  }) {
+    return _buildPremiumCard(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                icon,
+                size: 24,
+                color: color,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: isDarkMode
+                          ? AppTheme.textPrimary
+                          : AppTheme.textPrimaryLight,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isDarkMode
+                          ? AppTheme.textSecondary
+                          : AppTheme.textSecondaryLight,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: isDarkMode
+                  ? AppTheme.textSecondary
+                  : AppTheme.textSecondaryLight,
+            ),
+          ],
+        ),
+      ),
+      isDarkMode: isDarkMode,
+    );
+  }
+
+  Widget _buildLocationCard({
+    required String name,
+    required String country,
+    required ImageProvider? assetImage,
+    required bool isDarkMode,
+  }) {
+    return Container(
+      width: 160,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: isDarkMode
+            ? AppTheme.secondaryDark.withOpacity(0.7)
+            : Colors.white.withOpacity(0.8),
+        border: Border.all(
+          color: isDarkMode
+              ? Colors.white.withOpacity(0.1)
+              : Colors.white.withOpacity(0.8),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isDarkMode
+                ? Colors.black.withOpacity(0.3)
+                : Colors.grey.withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: assetImage != null
+                ? Image(
+                    image: assetImage,
+                    fit: BoxFit.cover,
+                  )
+                : Container(
+                    color: isDarkMode
+                        ? Colors.grey.shade800
+                        : Colors.grey.shade300,
+                    child: Icon(
+                      Icons.image,
+                      size: 30,
+                      color: isDarkMode
+                          ? Colors.grey.shade700
+                          : Colors.grey.shade400,
+                    ),
+                  ),
+          ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [
+                    Colors.black.withOpacity(0.8),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    country,
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.8),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Common widgets extracted from WalletScreen.dart to be reused across pages
+Widget _buildPremiumCard({
+  required Widget child,
+  required bool isDarkMode,
+  List<Color>? gradientColors,
+}) {
+  return Container(
+    margin: const EdgeInsets.symmetric(vertical: 4),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(16),
+      boxShadow: [
+        BoxShadow(
+          color: isDarkMode
+              ? Colors.black.withOpacity(0.3)
+              : Colors.grey.withOpacity(0.2),
+          blurRadius: 8,
+          offset: const Offset(0, 2),
+        ),
+      ],
+    ),
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            color: isDarkMode
+                ? AppTheme.secondaryDark.withOpacity(0.7)
+                : Colors.white.withOpacity(0.8),
+            gradient: gradientColors != null
+                ? LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: gradientColors,
+                  )
+                : null,
+            border: Border.all(
+              color: isDarkMode
+                  ? Colors.white.withOpacity(0.1)
+                  : Colors.white.withOpacity(0.8),
+              width: 1,
+            ),
+          ),
+          child: child,
+        ),
+      ),
+    ),
+  );
+}
+
+Widget _buildSectionHeader({
+  required IconData icon,
+  required String title,
+  required bool isDarkMode,
+}) {
+  return Padding(
+    padding: const EdgeInsets.only(left: 8.0),
+    child: Row(
+      children: [
+        Icon(
+          icon,
+          size: 20,
+          color: isDarkMode
+              ? AppTheme.accentTeal
+              : AppTheme.primaryDark.withOpacity(0.7),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color:
+                isDarkMode ? AppTheme.textPrimary : AppTheme.textPrimaryLight,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _buildPremiumActionButton({
+  required IconData icon,
+  required String label,
+  required Color color,
+  required VoidCallback onPressed,
+  required bool isDarkMode,
+  bool isFilled = false,
+  bool isWide = false,
+}) {
+  return Material(
+    color: Colors.transparent,
+    child: InkWell(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(12),
+      child: Ink(
+        decoration: BoxDecoration(
+          gradient: isFilled
+              ? LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    color,
+                    color.withOpacity(0.8),
+                  ],
+                )
+              : null,
+          color: isFilled
+              ? null
+              : isDarkMode
+                  ? AppTheme.secondaryDark
+                  : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(isFilled ? 0.3 : 0.1),
+              blurRadius: 8,
+              offset: Offset(0, 3),
+            ),
+          ],
+          border: isFilled
+              ? null
+              : Border.all(
+                  color: color.withOpacity(0.5),
+                  width: 1.5,
+                ),
+        ),
+        child: Container(
+          width: isWide ? double.infinity : null,
+          padding: EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: isWide ? 14 : 12,
+          ),
+          child: Row(
+            mainAxisSize: isWide ? MainAxisSize.max : MainAxisSize.min,
+            mainAxisAlignment:
+                isWide ? MainAxisAlignment.center : MainAxisAlignment.start,
+            children: [
+              Icon(
+                icon,
+                color: isFilled ? Colors.white : color,
+                size: 20,
+              ),
+              SizedBox(width: isWide ? 12 : 8),
+              Text(
+                label,
+                style: TextStyle(
+                  color: isFilled ? Colors.white : color,
+                  fontWeight: FontWeight.w600,
+                  fontSize: isWide ? 16 : 14,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 class ProfilePage extends StatelessWidget {
@@ -559,215 +1463,321 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDarkMode = Provider.of<ThemeProvider>(context).isDarkMode;
     final authProvider = AuthProvider.of(context);
     final user = authProvider.currentUser;
 
     return Scaffold(
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            // App Bar
-            SliverAppBar(
-              pinned: true,
-              title: const Text('Profile'),
-              actions: [
-                // Edit profile button
-                IconButton(
-                  icon: const Icon(Icons.edit),
-                  tooltip: 'Edit Profile',
-                  onPressed: () async {
-                    final result = await Navigator.push<bool>(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ProfileEditScreen(),
-                      ),
-                    );
-
-                    // Refresh UI if changes were made
-                    if (result == true) {
-                      authProvider.refreshUser();
-                    }
-                  },
-                ),
-                // Theme toggle - using Consumer for proper reactivity
-                Consumer<ThemeProvider>(
-                  builder: (context, themeProvider, _) {
-                    return IconButton(
-                      icon: Icon(
-                        themeProvider.isDarkMode
-                            ? Icons.light_mode_outlined
-                            : Icons.dark_mode_outlined,
-                      ),
-                      onPressed: () {
-                        // Use Provider.of with listen: false for method calls
-                        Provider.of<ThemeProvider>(context, listen: false)
-                            .toggleTheme();
-                      },
-                    );
-                  },
-                ),
-              ],
-            ),
-
-            // Profile Content
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(AppTheme.spacing4),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Profile picture
-                    Stack(
-                      alignment: Alignment.bottomRight,
-                      children: [
-                        CircleAvatar(
-                          radius: 50,
-                          backgroundColor: AppTheme.accentTeal.withOpacity(0.2),
-                          backgroundImage: user?.photoUrl != null
-                              ? NetworkImage(user!.photoUrl!)
-                              : null,
-                          child: user?.photoUrl == null
-                              ? Icon(
-                                  Icons.person,
-                                  size: 50,
-                                  color: AppTheme.accentTeal,
-                                )
-                              : null,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: isDarkMode
+                ? [
+                    AppTheme.primaryDark,
+                    AppTheme.secondaryDark,
+                  ]
+                : [
+                    AppTheme.lightBackground,
+                    Colors.white,
+                  ],
+          ),
+        ),
+        child: SafeArea(
+          child: CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                pinned: true,
+                title: const Text('Profile'),
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.edit),
+                    tooltip: 'Edit Profile',
+                    onPressed: () async {
+                      final result = await Navigator.push<bool>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ProfileEditScreen(),
                         ),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push<bool>(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const ProfileEditScreen(),
+                      );
+
+                      if (result == true && context.mounted) {
+                        authProvider.refreshUser();
+                      }
+                    },
+                  ),
+                  Consumer<ThemeProvider>(
+                    builder: (context, themeProvider, _) {
+                      return IconButton(
+                        icon: Icon(
+                          themeProvider.isDarkMode
+                              ? Icons.light_mode_outlined
+                              : Icons.dark_mode_outlined,
+                        ),
+                        onPressed: () {
+                          Provider.of<ThemeProvider>(context, listen: false)
+                              .toggleTheme();
+                        },
+                      );
+                    },
+                  ),
+                ],
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildPremiumCard(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 40,
+                                backgroundColor:
+                                    AppTheme.accentTeal.withOpacity(0.2),
+                                backgroundImage: user?.photoUrl != null
+                                    ? NetworkImage(user!.photoUrl!)
+                                    : null,
+                                child: user?.photoUrl == null
+                                    ? Icon(
+                                        Icons.person,
+                                        size: 40,
+                                        color: AppTheme.accentTeal,
+                                      )
+                                    : null,
                               ),
-                            );
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).primaryColor,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.edit,
-                              color: Colors.white,
-                              size: 16,
-                            ),
+                              const SizedBox(width: 20),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      user?.displayName ?? 'Eco Warrior',
+                                      style: theme.textTheme.headlineSmall
+                                          ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: isDarkMode
+                                            ? AppTheme.textPrimary
+                                            : AppTheme.textPrimaryLight,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      user?.email ?? 'No email provided',
+                                      style:
+                                          theme.textTheme.bodyLarge?.copyWith(
+                                        color: isDarkMode
+                                            ? AppTheme.textSecondary
+                                            : AppTheme.textSecondaryLight,
+                                      ),
+                                    ),
+                                    if (user?.bio != null &&
+                                        user!.bio!.isNotEmpty) ...[
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        user.bio!,
+                                        style: theme.textTheme.bodyMedium
+                                            ?.copyWith(
+                                          color: isDarkMode
+                                              ? AppTheme.textSecondary
+                                              : AppTheme.textSecondaryLight,
+                                          fontStyle: FontStyle.italic,
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
+                        isDarkMode: isDarkMode,
+                        gradientColors: isDarkMode
+                            ? [
+                                AppTheme.primaryDark.withOpacity(0.9),
+                                AppTheme.secondaryDark.withOpacity(0.8)
+                              ]
+                            : [
+                                Colors.white.withOpacity(0.9),
+                                AppTheme.lightBackground.withOpacity(0.8)
+                              ],
+                      ),
+                      const SizedBox(height: 24),
+                      _buildSectionHeader(
+                        icon: Icons.settings,
+                        title: 'Account Settings',
+                        isDarkMode: isDarkMode,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildProfileMenuCard(
+                        icon: Icons.person_outline,
+                        title: 'Edit Profile',
+                        subtitle: 'Change your personal information',
+                        isDarkMode: isDarkMode,
+                        onTap: () async {
+                          final result = await Navigator.push<bool>(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ProfileEditScreen(),
+                            ),
+                          );
 
-                    const SizedBox(height: AppTheme.spacing4),
-
-                    // User name
-                    Text(
-                      user?.displayName ?? 'Eco Warrior',
-                      style: Theme.of(context).textTheme.titleLarge,
-                      textAlign: TextAlign.center,
-                    ),
-
-                    const SizedBox(height: AppTheme.spacing2),
-
-                    // User email
-                    Text(
-                      user?.email ?? 'No email provided',
-                      style: Theme.of(context).textTheme.bodySmall,
-                      textAlign: TextAlign.center,
-                    ),
-
-                    if (user?.bio != null && user!.bio!.isNotEmpty) ...[
-                      const SizedBox(height: AppTheme.spacing3),
-                      Text(
-                        user.bio!,
-                        style: Theme.of(context).textTheme.bodyMedium,
-                        textAlign: TextAlign.center,
+                          if (result == true && context.mounted) {
+                            authProvider.refreshUser();
+                          }
+                        },
+                      ),
+                      if (user?.hasWallet == true)
+                        _buildProfileMenuCard(
+                          icon: Icons.account_balance_wallet_outlined,
+                          title: 'Connected Wallet',
+                          subtitle: _formatWalletAddress(user?.walletAddress),
+                          isDarkMode: isDarkMode,
+                          onTap: () {
+                            if (context.mounted) {
+                              final homeState = context
+                                  .findAncestorStateOfType<_HomeScreenState>();
+                              if (homeState != null) {
+                                homeState._onItemTapped(3);
+                              }
+                            }
+                          },
+                        ),
+                      _buildProfileMenuCard(
+                        icon: Icons.notifications_outlined,
+                        title: 'Notifications',
+                        subtitle: 'Manage notification preferences',
+                        isDarkMode: isDarkMode,
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Notifications coming soon'),
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      _buildProfileMenuCard(
+                        icon: Icons.security_outlined,
+                        title: 'Security',
+                        subtitle: 'Update password and security settings',
+                        isDarkMode: isDarkMode,
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Security settings coming soon'),
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      _buildSectionHeader(
+                        icon: Icons.data_usage_outlined,
+                        title: 'Usage & Data',
+                        isDarkMode: isDarkMode,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildProfileStatsCard(
+                        title: 'Carbon Credits Balance',
+                        value: user?.carbonCredits.toString() ?? '0',
+                        icon: Icons.shopping_cart_outlined,
+                        iconColor: AppTheme.accentTeal,
+                        isDarkMode: isDarkMode,
+                      ),
+                      _buildProfileStatsCard(
+                        title: 'Carbon Footprint',
+                        value: user?.carbonFootprint != null
+                            ? '${user?.carbonFootprint.toStringAsFixed(1)} Tonnes'
+                            : '0.0 Tonnes',
+                        icon: Icons.eco_outlined,
+                        iconColor: AppTheme.accentLime,
+                        isDarkMode: isDarkMode,
+                      ),
+                      _buildProfileStatsCard(
+                        title: 'Offset Percentage',
+                        value: user?.offsetPercentage != null
+                            ? '${user?.offsetPercentage}%'
+                            : '0%',
+                        icon: Icons.leaderboard_outlined,
+                        iconColor: Colors.orange,
+                        isDarkMode: isDarkMode,
+                      ),
+                      const SizedBox(height: 24),
+                      _buildSectionHeader(
+                        icon: Icons.help_outline,
+                        title: 'Support',
+                        isDarkMode: isDarkMode,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildProfileMenuCard(
+                        icon: Icons.help_center_outlined,
+                        title: 'Help Center',
+                        subtitle: 'FAQs and support resources',
+                        isDarkMode: isDarkMode,
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Help Center coming soon'),
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      _buildProfileMenuCard(
+                        icon: Icons.contact_support_outlined,
+                        title: 'Contact Us',
+                        subtitle: 'Get in touch with our support team',
+                        isDarkMode: isDarkMode,
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Contact form coming soon'),
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      _buildPremiumActionButton(
+                        icon: Icons.logout,
+                        label: 'Sign Out',
+                        color: Colors.red.shade700,
+                        isDarkMode: isDarkMode,
+                        isFilled: false,
+                        isWide: true,
+                        onPressed: () => _signOut(context),
                       ),
                     ],
-
-                    const SizedBox(height: AppTheme.spacing5),
-
-                    // Profile Options
-                    ..._buildProfileOptions(context),
-
-                    const SizedBox(height: AppTheme.spacing5),
-
-                    // Sign Out Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () => _signOut(context),
-                        icon: const Icon(Icons.logout),
-                        label: const Text('Sign Out'),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.all(AppTheme.spacing3),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
-  }
-
-  List<Widget> _buildProfileOptions(BuildContext context) {
-    final user = AuthProvider.of(context).currentUser;
-
-    return [
-      if (user?.hasWallet == true)
-        _ProfileOption(
-          icon: Icons.account_balance_wallet_outlined,
-          title: 'Connected Wallet',
-          subtitle: _formatWalletAddress(user?.walletAddress),
-          onTap: () {
-            // Navigate to wallet tab
-            if (context.mounted) {
-              final homeState =
-                  context.findAncestorStateOfType<_HomeScreenState>();
-              if (homeState != null) {
-                homeState._onItemTapped(3); // Index 3 is the wallet tab
-              }
-            }
-          },
-        ),
-      if (user?.hasWallet == true) const SizedBox(height: AppTheme.spacing3),
-      _ProfileOption(
-        icon: Icons.settings_outlined,
-        title: 'Account Settings',
-        onTap: () {
-          // TODO: Navigate to account settings
-        },
-      ),
-      const SizedBox(height: AppTheme.spacing3),
-      _ProfileOption(
-        icon: Icons.bar_chart_outlined,
-        title: 'Carbon Stats',
-        onTap: () {
-          // TODO: Navigate to carbon stats
-        },
-      ),
-      const SizedBox(height: AppTheme.spacing3),
-      _ProfileOption(
-        icon: Icons.history_outlined,
-        title: 'Transaction History',
-        onTap: () {
-          // TODO: Navigate to transaction history
-        },
-      ),
-      const SizedBox(height: AppTheme.spacing3),
-      _ProfileOption(
-        icon: Icons.notifications_outlined,
-        title: 'Notification Settings',
-        onTap: () {
-          // TODO: Navigate to notification settings
-        },
-      ),
-    ];
   }
 
   String _formatWalletAddress(String? address) {
@@ -775,7 +1785,6 @@ class ProfilePage extends StatelessWidget {
       return '';
     }
 
-    // Format as 0x1234...5678
     if (address.length > 10) {
       return '${address.substring(0, 6)}...${address.substring(address.length - 4)}';
     }
@@ -786,79 +1795,174 @@ class ProfilePage extends StatelessWidget {
   void _signOut(BuildContext context) async {
     final authProvider = AuthProvider.of(context, listen: false);
 
-    // Show loading dialog
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => const Center(child: CircularProgressIndicator()),
     );
 
-    // Sign out
-    await authProvider.signOut();
+    try {
+      await authProvider.signOut();
 
-    // Close dialog and navigate to login screen
-    if (context.mounted) {
-      Navigator.of(context).pop(); // Close dialog
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-        (route) => false,
-      );
+      if (context.mounted) {
+        Navigator.of(context).pop();
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error signing out: $e'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
-}
 
-class _ProfileOption extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String? subtitle;
-  final VoidCallback onTap;
-
-  const _ProfileOption({
-    required this.icon,
-    required this.title,
-    this.subtitle,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppTheme.borderRadius3),
-      child: Container(
-        padding: const EdgeInsets.all(AppTheme.spacing3),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(AppTheme.borderRadius3),
-        ),
-        child: Row(
-          children: [
-            Icon(icon),
-            const SizedBox(width: AppTheme.spacing3),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  if (subtitle != null)
-                    Text(
-                      subtitle!,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withOpacity(0.6),
-                          ),
+  Widget _buildProfileMenuCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required bool isDarkMode,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: _buildPremiumCard(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: isDarkMode
+                        ? AppTheme.primaryDark.withOpacity(0.5)
+                        : AppTheme.accentTeal.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDarkMode
+                          ? Colors.white.withOpacity(0.1)
+                          : AppTheme.accentTeal.withOpacity(0.3),
+                      width: 1,
                     ),
-                ],
-              ),
+                  ),
+                  child: Icon(
+                    icon,
+                    size: 22,
+                    color: AppTheme.accentTeal,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: isDarkMode
+                              ? AppTheme.textPrimary
+                              : AppTheme.textPrimaryLight,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: isDarkMode
+                              ? AppTheme.textSecondary
+                              : AppTheme.textSecondaryLight,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right,
+                  color: isDarkMode
+                      ? AppTheme.textSecondary
+                      : AppTheme.textSecondaryLight,
+                ),
+              ],
             ),
-            const Icon(Icons.chevron_right),
-          ],
+          ),
+          isDarkMode: isDarkMode,
         ),
+      ),
+    );
+  }
+
+  Widget _buildProfileStatsCard({
+    required String title,
+    required String value,
+    required IconData icon,
+    required Color iconColor,
+    required bool isDarkMode,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: _buildPremiumCard(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: iconColor.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  icon,
+                  size: 22,
+                  color: iconColor,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isDarkMode
+                            ? AppTheme.textSecondary
+                            : AppTheme.textSecondaryLight,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      value,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: isDarkMode
+                            ? AppTheme.textPrimary
+                            : AppTheme.textPrimaryLight,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        isDarkMode: isDarkMode,
       ),
     );
   }
