@@ -1008,280 +1008,306 @@ const CONTRACT_ABI = [
 	}
 ];
 
-// Get contract instance
-const getContract = async () => {
-  if (!window.ethereum) {
-    throw new Error('MetaMask is not installed');
-  }
+// Helper function to handle token amount conversion (works with ethers v5 or v6)
+const convertTokenAmount = (amount) => {
+	try {
+		// Try ethers v6 approach first
+		return ethers.parseUnits(amount.toString(), 'ether');
+	} catch (e) {
+		try {
+			// Fall back to v5 approach
+			return ethers.utils.parseEther(amount.toString());
+		} catch (e2) {
+			// If all conversions fail, just use the number directly
+			console.error("Token conversion failed, using raw value:", e2);
+			return amount;
+		}
+	}
+};
 
-  try {
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-    
-    // Check if we're on the right network (Sepolia)
-    const network = await provider.getNetwork();
-    if (network.chainId !== 11155111n) { // Sepolia chainId
-      console.warn('Warning: Not connected to Sepolia testnet');
-    }
-    
-    return new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-  } catch (error) {
-    console.error('Error getting contract instance:', error);
-    throw error;
-  }
+const getContract = async () => {
+	if (!window.ethereum) {
+		throw new Error('MetaMask is not installed');
+	}
+
+	try {
+		// Determine which ethers version we're using
+		let provider, signer;
+		
+		// For ethers v6
+		if (ethers.BrowserProvider) {
+			provider = new ethers.BrowserProvider(window.ethereum);
+			signer = await provider.getSigner();
+		} 
+		// For ethers v5 
+		else if (ethers.providers && ethers.providers.Web3Provider) {
+			provider = new ethers.providers.Web3Provider(window.ethereum);
+			signer = provider.getSigner();
+		}
+		// Fallback
+		else {
+			throw new Error("Unsupported ethers version");
+		}
+		
+		return new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+	} catch (error) {
+		console.error('Error getting contract instance:', error);
+		throw error;
+	}
 };
 
 // Submit a sustainability report
 export const submitSustainabilityReport = async (reportData) => {
-  try {
-    // Destructure with aliases to match both naming conventions
-    const { 
-      title, 
-      description, 
-      category, 
-      evidenceLink, // New name
-      evidence, // Old name
-      latitudeValue, // New name
-      latitude, // Old name
-      longitudeValue, // New name
-      longitude, // Old name
-      latitudeDirection, // New name
-      latDirection, // Old name
-      longitudeDirection, // New name
-      longDirection // Old name
-    } = reportData;
+	try {
+		// Destructure with aliases to match both naming conventions
+		const { 
+			title, 
+			description, 
+			category, 
+			evidenceLink, // New name
+			evidence, // Old name
+			latitudeValue, // New name
+			latitude, // Old name
+			longitudeValue, // New name
+			longitude, // Old name
+			latitudeDirection, // New name
+			latDirection, // Old name
+			longitudeDirection, // New name
+			longDirection // Old name
+		} = reportData;
 
-    // Validate inputs
-    if (!title || !description || !category) {
-      throw new Error('Missing required fields');
-    }
+		// Validate inputs
+		if (!title || !description || !category) {
+			throw new Error('Missing required fields');
+		}
 
-    // Get contract instance
-    const contract = await getContract();
+		// Get contract instance
+		const contract = await getContract();
 
-    // Select the right values with fallbacks
-    const evidenceUrl = evidenceLink || evidence || '';
-    const lat = latitudeValue || latitude || '0';
-    const long = longitudeValue || longitude || '0';
-    const latDir = latitudeDirection || latDirection || 'N';
-    const longDir = longitudeDirection || longDirection || 'E';
+		// Select the right values with fallbacks
+		const evidenceUrl = evidenceLink || evidence || '';
+		const lat = latitudeValue || latitude || '0';
+		const long = longitudeValue || longitude || '0';
+		const latDir = latitudeDirection || latDirection || 'N';
+		const longDir = longitudeDirection || longDirection || 'E';
 
-    // Safely parse latitude and longitude to int256
-    let latInt = 0;
-    let longInt = 0;
-    
-    try {
-      // Make sure we're dealing with strings before using replace
-      latInt = parseInt(String(lat).replace('.', ''));
-      if (isNaN(latInt)) latInt = 0;
-    } catch (error) {
-      console.warn('Error parsing latitude:', error);
-      latInt = 0;
-    }
-    
-    try {
-      // Make sure we're dealing with strings before using replace
-      longInt = parseInt(String(long).replace('.', ''));
-      if (isNaN(longInt)) longInt = 0;
-    } catch (error) {
-      console.warn('Error parsing longitude:', error);
-      longInt = 0;
-    }
+		// Safely parse latitude and longitude to int256
+		let latInt = 0;
+		let longInt = 0;
+		
+		try {
+			// Make sure we're dealing with strings before using replace
+			latInt = parseInt(String(lat).replace('.', ''));
+			if (isNaN(latInt)) latInt = 0;
+		} catch (error) {
+			console.warn('Error parsing latitude:', error);
+			latInt = 0;
+		}
+		
+		try {
+			// Make sure we're dealing with strings before using replace
+			longInt = parseInt(String(long).replace('.', ''));
+			if (isNaN(longInt)) longInt = 0;
+		} catch (error) {
+			console.warn('Error parsing longitude:', error);
+			longInt = 0;
+		}
 
-    // Submit the report with safe values
-    const tx = await contract.submitReport(
-      title,
-      description,
-      category,
-      evidenceUrl,
-      latInt,
-      longInt,
-      latDir,
-      longDir
-    );
+		// Submit the report with safe values
+		const tx = await contract.submitReport(
+			title,
+			description,
+			category,
+			evidenceUrl,
+			latInt,
+			longInt,
+			latDir,
+			longDir
+		);
 
-    // Wait for transaction to be mined
-    const receipt = await tx.wait();
+		// Wait for transaction to be mined
+		const receipt = await tx.wait();
 
-    return {
-      success: true,
-      txHash: receipt.hash,
-      error: null
-    };
-  } catch (error) {
-    console.error('Error submitting sustainability report:', error);
-    return {
-      success: false,
-      txHash: null,
-      error: error.message || 'Failed to submit report'
-    };
-  }
+		return {
+			success: true,
+			txHash: receipt.hash,
+			error: null
+		};
+	} catch (error) {
+		console.error('Error submitting sustainability report:', error);
+		return {
+			success: false,
+			txHash: null,
+			error: error.message || 'Failed to submit report'
+		};
+	}
 };
 
 // Get all pending reports
 export const getPendingReports = async () => {
-  try {
-    const contract = await getContract();
-    
-    // Use a try-catch for the specific contract call
-    try {
-      const reports = await contract.getPendingReports();
-      
-      // Safely process the reports data to handle potential missing fields
-      let processedReports = [];
-      if (Array.isArray(reports)) {
-        processedReports = reports.map(report => {
-          try {
-            // Create a safe report object with default values for missing properties
-            return {
-              id: report.id?.toString() || '0',
-              reporter: report.reporter || '0x0000000000000000000000000000000000000000',
-              title: report.title || 'Untitled Report',
-              description: report.description || '',
-              category: report.category || 'Uncategorized',
-              timestamp: report.timestamp?.toString() || '0',
-              evidenceLink: report.evidenceLink || '',
-              latitudeValue: report.latitudeValue?.toString() || '0',
-              latitudeDirection: report.latitudeDirection || 'N',
-              longitudeValue: report.longitudeValue?.toString() || '0',
-              longitudeDirection: report.longitudeDirection || 'E',
-              status: report.status || 0
-            };
-          } catch (e) {
-            console.error('Error processing report data:', e);
-            return null;
-          }
-        }).filter(report => report !== null);
-      }
-      
-      return {
-        success: true,
-        reports: processedReports,
-        error: null
-      };
-    } catch (contractError) {
-      console.error('Contract call error for getPendingReports:', contractError);
-      return {
-        success: false,
-        reports: [],
-        error: 'Failed to retrieve reports from the contract. The contract may not be properly deployed on Sepolia testnet.'
-      };
-    }
-  } catch (error) {
-    console.error('Error getting pending reports:', error);
-    return {
-      success: false,
-      reports: [],
-      error: error.message || 'Failed to get pending reports'
-    };
-  }
+	try {
+		const contract = await getContract();
+		
+		// Use a try-catch for the specific contract call
+		try {
+			const reports = await contract.getPendingReports();
+			
+			// Safely process the reports data to handle potential missing fields
+			let processedReports = [];
+			if (Array.isArray(reports)) {
+				processedReports = reports.map(report => {
+					try {
+						// Create a safe report object with default values for missing properties
+						return {
+							id: report.id?.toString() || '0',
+							reporter: report.reporter || '0x0000000000000000000000000000000000000000',
+							title: report.title || 'Untitled Report',
+							description: report.description || '',
+							category: report.category || 'Uncategorized',
+							timestamp: report.timestamp?.toString() || '0',
+							evidenceLink: report.evidenceLink || '',
+							latitudeValue: report.latitudeValue?.toString() || '0',
+							latitudeDirection: report.latitudeDirection || 'N',
+							longitudeValue: report.longitudeValue?.toString() || '0',
+							longitudeDirection: report.longitudeDirection || 'E',
+							status: report.status || 0
+						};
+					} catch (e) {
+						console.error('Error processing report data:', e);
+						return null;
+					}
+				}).filter(report => report !== null);
+			}
+			
+			return {
+				success: true,
+				reports: processedReports,
+				error: null
+			};
+		} catch (contractError) {
+			console.error('Contract call error for getPendingReports:', contractError);
+			return {
+				success: false,
+				reports: [],
+				error: 'Failed to retrieve reports from the contract. The contract may not be properly deployed on Sepolia testnet.'
+			};
+		}
+	} catch (error) {
+		console.error('Error getting pending reports:', error);
+		return {
+			success: false,
+			reports: [],
+			error: error.message || 'Failed to get pending reports'
+		};
+	}
 };
 
 // Get all verified reports
 export const getVerifiedReports = async () => {
-  try {
-    const contract = await getContract();
-    
-    // Use a try-catch for the specific contract call
-    try {
-      const reports = await contract.getVerifiedReports();
-      
-      // Safely process the reports data to handle potential missing fields
-      let processedReports = [];
-      if (Array.isArray(reports)) {
-        processedReports = reports.map(report => {
-          try {
-            // Create a safe report object with default values for missing properties
-            return {
-              id: report.id?.toString() || '0',
-              reporter: report.reporter || '0x0000000000000000000000000000000000000000',
-              title: report.title || 'Untitled Report',
-              description: report.description || '',
-              category: report.category || 'Uncategorized',
-              timestamp: report.timestamp?.toString() || '0',
-              evidenceLink: report.evidenceLink || '',
-              latitudeValue: report.latitudeValue?.toString() || '0',
-              latitudeDirection: report.latitudeDirection || 'N',
-              longitudeValue: report.longitudeValue?.toString() || '0',
-              longitudeDirection: report.longitudeDirection || 'E',
-              status: report.status || 0,
-              verificationResult: report.verificationResult || false,
-              verificationTimestamp: report.verificationTimestamp?.toString() || '0',
-              verifierNotes: report.verifierNotes || ''
-            };
-          } catch (e) {
-            console.error('Error processing report data:', e);
-            return null;
-          }
-        }).filter(report => report !== null);
-      }
-      
-      return {
-        success: true,
-        reports: processedReports,
-        error: null
-      };
-    } catch (contractError) {
-      console.error('Contract call error for getVerifiedReports:', contractError);
-      return {
-        success: false,
-        reports: [],
-        error: 'Failed to retrieve reports from the contract. The contract may not be properly deployed on Sepolia testnet.'
-      };
-    }
-  } catch (error) {
-    console.error('Error getting verified reports:', error);
-    return {
-      success: false,
-      reports: [],
-      error: error.message || 'Failed to get verified reports'
-    };
-  }
+	try {
+		const contract = await getContract();
+		
+		// Use a try-catch for the specific contract call
+		try {
+			const reports = await contract.getVerifiedReports();
+			
+			// Safely process the reports data to handle potential missing fields
+			let processedReports = [];
+			if (Array.isArray(reports)) {
+				processedReports = reports.map(report => {
+					try {
+						// Create a safe report object with default values for missing properties
+						return {
+							id: report.id?.toString() || '0',
+							reporter: report.reporter || '0x0000000000000000000000000000000000000000',
+							title: report.title || 'Untitled Report',
+							description: report.description || '',
+							category: report.category || 'Uncategorized',
+							timestamp: report.timestamp?.toString() || '0',
+							evidenceLink: report.evidenceLink || '',
+							latitudeValue: report.latitudeValue?.toString() || '0',
+							latitudeDirection: report.latitudeDirection || 'N',
+							longitudeValue: report.longitudeValue?.toString() || '0',
+							longitudeDirection: report.longitudeDirection || 'E',
+							status: report.status || 0,
+							verificationResult: report.verificationResult || false,
+							verificationTimestamp: report.verificationTimestamp?.toString() || '0',
+							verifierNotes: report.verifierNotes || ''
+						};
+					} catch (e) {
+						console.error('Error processing report data:', e);
+						return null;
+					}
+				}).filter(report => report !== null);
+			}
+			
+			return {
+				success: true,
+				reports: processedReports,
+				error: null
+			};
+		} catch (contractError) {
+			console.error('Contract call error for getVerifiedReports:', contractError);
+			return {
+				success: false,
+				reports: [],
+				error: 'Failed to retrieve reports from the contract. The contract may not be properly deployed on Sepolia testnet.'
+			};
+		}
+	} catch (error) {
+		console.error('Error getting verified reports:', error);
+		return {
+			success: false,
+			reports: [],
+			error: error.message || 'Failed to get verified reports'
+		};
+	}
 };
 
 // Get token balance
 export const getTokenBalance = async (address) => {
-  try {
-    const contract = await getContract();
-    const balance = await contract.getTokenBalance(address);
-    
-    return {
-      success: true,
-      balance: balance.toString(),
-      error: null
-    };
-  } catch (error) {
-    console.error('Error getting token balance:', error);
-    return {
-      success: false,
-      balance: '0',
-      error: error.message || 'Failed to get token balance'
-    };
-  }
+	try {
+		const contract = await getContract();
+		const balance = await contract.getTokenBalance(address);
+		
+		return {
+			success: true,
+			balance: balance.toString(),
+			error: null
+		};
+	} catch (error) {
+		console.error('Error getting token balance:', error);
+		return {
+			success: false,
+			balance: '0',
+			error: error.message || 'Failed to get token balance'
+		};
+	}
 };
 
 // Verify a report (admin only)
 export const verifyReport = async (reportIndex, tokensToMint) => {
-  try {
-    const contract = await getContract();
-    
-    // Ensure proper conversion of tokensToMint to a BigNumber
-    const tokensAmount = ethers.utils.parseEther(tokensToMint.toString());
-    
-    const tx = await contract.verifyReport(reportIndex, tokensAmount);
-    await tx.wait();
-    
-    return {
-      success: true,
-      error: null,
-      transaction: tx
-    };
-  } catch (error) {
-    console.error('Error verifying report:', error);
-    return {
-      success: false,
-      error: error.message || 'Failed to verify report. Please ensure you have admin rights.',
-      transaction: null
-    };
-  }
+	try {
+		const contract = await getContract();
+		
+		// Use our helper function to safely convert the tokens amount
+		const tokensAmount = convertTokenAmount(tokensToMint);
+		console.log("Tokens to mint:", tokensAmount.toString());
+		
+		const tx = await contract.verifyReport(reportIndex, tokensAmount);
+		await tx.wait();
+		
+		return {
+			success: true,
+			error: null,
+			transaction: tx
+		};
+	} catch (error) {
+		console.error('Error verifying report:', error);
+		return {
+			success: false,
+			error: error.message || 'Failed to verify report. Please ensure you have admin rights.',
+			transaction: null
+		};
+	}
 }; 

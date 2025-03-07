@@ -142,6 +142,11 @@ const Admin = () => {
       type: 'success',
       message: `Report verified successfully. ${tokensMinted} carbon credit tokens minted.`
     });
+    
+    // Refresh the reports list after a short delay
+    setTimeout(() => {
+      loadPendingReports();
+    }, 3000);
   };
   
   return (
@@ -418,8 +423,11 @@ const Admin = () => {
                 {/* Reports Tab */}
                 {activeTab === 'reports' && (
                   <div>
-                    <div className="flex justify-between items-center mb-6">
-                      <h2 className="text-xl font-bold text-white gradient-text">Sustainability Reports</h2>
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                      <div>
+                        <h2 className="text-xl font-bold text-white gradient-text">Sustainability Reports</h2>
+                        <p className="text-[#94A3B8]">Review and verify company sustainability reports</p>
+                      </div>
                       <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
@@ -429,8 +437,62 @@ const Admin = () => {
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
                         </svg>
-                        Refresh
+                        Refresh Reports
                       </motion.button>
+                    </div>
+                    
+                    {/* Stats Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                      <div className="stats-card bg-[#0F172A]/80 p-5 rounded-xl border border-[#76EAD7]/20">
+                        <div className="flex items-center mb-3">
+                          <div className="w-10 h-10 bg-[#76EAD7]/10 rounded-full flex items-center justify-center mr-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#76EAD7]" viewBox="0 0 20 20" fill="currentColor">
+                              <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                              <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <p className="text-[#94A3B8]">Pending Reports</p>
+                        </div>
+                        <h3 className="text-3xl font-bold text-white">{pendingReports.length}</h3>
+                      </div>
+                      
+                      <div className="stats-card bg-[#0F172A]/80 p-5 rounded-xl border border-[#76EAD7]/20">
+                        <div className="flex items-center mb-3">
+                          <div className="w-10 h-10 bg-[#76EAD7]/10 rounded-full flex items-center justify-center mr-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#76EAD7]" viewBox="0 0 20 20" fill="currentColor">
+                              <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+                              <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <p className="text-[#94A3B8]">Mintable Credits</p>
+                        </div>
+                        <h3 className="text-3xl font-bold text-white">{pendingReports.length > 0 ? `${pendingReports.length * 10}+` : '0'}</h3>
+                      </div>
+                      
+                      <div className="stats-card bg-[#0F172A]/80 p-5 rounded-xl border border-[#76EAD7]/20">
+                        <div className="flex items-center mb-3">
+                          <div className="w-10 h-10 bg-[#76EAD7]/10 rounded-full flex items-center justify-center mr-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#76EAD7]" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <p className="text-[#94A3B8]">Avg. Processing Time</p>
+                        </div>
+                        <h3 className="text-3xl font-bold text-white">48h</h3>
+                      </div>
+                    </div>
+                    
+                    <div className="mb-6 p-5 bg-[#0F172A]/40 border border-[#76EAD7]/10 rounded-xl">
+                      <div className="flex items-center mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#76EAD7] mr-2" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                        </svg>
+                        <h4 className="text-white font-medium">Verification Instructions</h4>
+                      </div>
+                      <p className="text-[#94A3B8] text-sm">
+                        Each verification will mint carbon credit tokens directly to the reporter's wallet address. The amount of tokens you specify will be minted 
+                        as a reward for their sustainability efforts. Review the report details carefully before verification.
+                      </p>
                     </div>
                     
                     {pendingReports.length === 0 ? (

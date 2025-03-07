@@ -1,11 +1,58 @@
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useWallet } from '../../context/wallet_context';
+import { getTokenBalance } from '../../services/carbon_contract_service';
 import CompanyReports from './company_reports';
 
 const CompanyProfile = () => {
   const { company, walletAddress } = useWallet();
   const [activeTab, setActiveTab] = useState('overview');
+  const [tokenBalance, setTokenBalance] = useState('0');
+  const [isLoadingBalance, setIsLoadingBalance] = useState(false);
+  
+  // Load token balance from smart contract
+  useEffect(() => {
+    const loadTokenBalance = async () => {
+      if (!walletAddress) return;
+      
+      try {
+        setIsLoadingBalance(true);
+        const result = await getTokenBalance(walletAddress);
+        
+        if (result.success) {
+          // Convert from wei to eth (tokens)
+          const balance = parseFloat(result.balance) / 1e18;
+          setTokenBalance(balance.toFixed(2));
+        }
+      } catch (error) {
+        console.error("Error loading token balance:", error);
+      } finally {
+        setIsLoadingBalance(false);
+      }
+    };
+    
+    loadTokenBalance();
+  }, [walletAddress]);
+  
+  // Manual refresh function for token balance
+  const refreshTokenBalance = async () => {
+    if (!walletAddress) return;
+    
+    try {
+      setIsLoadingBalance(true);
+      const result = await getTokenBalance(walletAddress);
+      
+      if (result.success) {
+        // Convert from wei to eth (tokens)
+        const balance = parseFloat(result.balance) / 1e18;
+        setTokenBalance(balance.toFixed(2));
+      }
+    } catch (error) {
+      console.error("Error refreshing token balance:", error);
+    } finally {
+      setIsLoadingBalance(false);
+    }
+  };
   
   // Format date
   const formatDate = (date) => {
@@ -165,27 +212,75 @@ const CompanyProfile = () => {
           {/* Token Balances */}
           <h4 className="text-lg font-medium text-white mb-4">Carbon Credit Balances</h4>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            {company.tokenBalances ? (
-              Object.entries(company.tokenBalances).map(([token, amount]) => (
-                <div 
-                  key={token}
-                  className="bg-[#0F172A]/40 p-4 rounded-xl border border-[#76EAD7]/10"
-                >
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-[#76EAD7] px-2 py-1 bg-[#76EAD7]/10 rounded-lg">{token}</span>
-                    <div className="w-8 h-8 bg-[#76EAD7]/10 rounded-full flex items-center justify-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-[#76EAD7]" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
-                        <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="mt-2">
-                    <p className="text-white font-medium text-lg">{amount} Tonnes</p>
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="bg-[#0F172A]/40 p-5 rounded-xl border border-[#76EAD7]/20 feature-card-enhanced"
+            >
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-[#76EAD7] px-3 py-1 bg-[#76EAD7]/10 rounded-lg font-medium">Carbon Credits</span>
+                <div className="flex items-center">
+                  <button 
+                    onClick={refreshTokenBalance}
+                    disabled={isLoadingBalance}
+                    className="p-2 rounded-full bg-[#0F172A] mr-3 hover:bg-[#76EAD7]/10 transition-colors"
+                    title="Refresh balance"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 text-[#76EAD7] ${isLoadingBalance ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  </button>
+                  <div className="feature-icon-enhanced w-10 h-10 bg-[#0F172A] rounded-full flex items-center justify-center flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#76EAD7] icon-glow" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+                      <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
+                    </svg>
                   </div>
                 </div>
-              ))
-            ) : (
+              </div>
+              <div className="mt-2">
+                {isLoadingBalance ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="h-5 w-5 border-2 border-[#76EAD7]/30 border-t-[#76EAD7] rounded-full animate-spin"></div>
+                    <p className="text-[#94A3B8] text-sm">Loading balance...</p>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-white font-bold text-3xl mb-1 gradient-text">{tokenBalance}</p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-[#94A3B8] text-sm">Carbon Credit Tokens</p>
+                      <span className="text-xs px-2 py-1 bg-green-500/10 text-green-400 rounded-full flex items-center">
+                        <span className="w-1.5 h-1.5 bg-green-400 rounded-full mr-1"></span>
+                        Live Balance
+                      </span>
+                    </div>
+                  </>
+                )}
+              </div>
+            </motion.div>
+            
+            {company.tokenBalances && Object.entries(company.tokenBalances).map(([token, amount]) => (
+              <div 
+                key={token}
+                className="bg-[#0F172A]/40 p-4 rounded-xl border border-[#76EAD7]/10"
+              >
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-[#76EAD7] px-2 py-1 bg-[#76EAD7]/10 rounded-lg">{token}</span>
+                  <div className="w-8 h-8 bg-[#76EAD7]/10 rounded-full flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-[#76EAD7]" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+                      <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="mt-2">
+                  <p className="text-white font-medium text-lg">{amount} Tonnes</p>
+                </div>
+              </div>
+            ))}
+            
+            {!company.tokenBalances && tokenBalance === '0' && (
               <div className="col-span-3 text-center text-[#94A3B8] p-6">
                 No token balances available
               </div>

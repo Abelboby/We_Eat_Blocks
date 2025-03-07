@@ -32,15 +32,26 @@ const ReportVerificationCard = ({ report, index, onVerify }) => {
       setIsVerifying(true);
       setError(null);
       
-      const result = await verifyReport(index, tokensToMint);
+      // Ensure tokensToMint is a valid integer
+      const tokenAmount = Math.floor(Number(tokensToMint));
+      
+      if (isNaN(tokenAmount) || tokenAmount <= 0) {
+        setError('Please enter a valid positive number of tokens to mint');
+        setIsVerifying(false);
+        return;
+      }
+      
+      console.log(`Verifying report at index ${index} with ${tokenAmount} tokens`);
+      const result = await verifyReport(index, tokenAmount);
       
       if (result.success) {
         // Update parent component
-        onVerify(index, tokensToMint);
+        onVerify(index, tokenAmount);
       } else {
         setError(result.error);
       }
     } catch (error) {
+      console.error('Verification error:', error);
       setError(error.message || 'An error occurred while verifying the report');
     } finally {
       setIsVerifying(false);
@@ -127,7 +138,7 @@ const ReportVerificationCard = ({ report, index, onVerify }) => {
             <div>
               <span className="text-[#94A3B8] text-sm">Latitude</span>
               <p className="text-white font-medium">
-                {(report.latitudeValue / 100).toFixed(2)}° {report.latitudeDirection}
+                {report.latitude ? (parseFloat(report.latitude) / 100).toFixed(2) : '0.00'}° {report.latDirection || 'N'}
               </p>
             </div>
           </div>
@@ -140,9 +151,18 @@ const ReportVerificationCard = ({ report, index, onVerify }) => {
             <div>
               <span className="text-[#94A3B8] text-sm">Longitude</span>
               <p className="text-white font-medium">
-                {(report.longitudeValue / 100).toFixed(2)}° {report.longitudeDirection}
+                {report.longitude ? (parseFloat(report.longitude) / 100).toFixed(2) : '0.00'}° {report.longDirection || 'E'}
               </p>
             </div>
+          </div>
+        </div>
+        
+        <div className="mt-4 bg-[#0F172A]/40 rounded-lg p-3 border border-[#76EAD7]/10">
+          <div className="flex items-center text-[#94A3B8] text-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-[#76EAD7]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>Coordinates shown are approximate and may not be exact</span>
           </div>
         </div>
       </div>
@@ -171,7 +191,12 @@ const ReportVerificationCard = ({ report, index, onVerify }) => {
         
         {error && (
           <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-            <p className="text-red-400 text-sm">{error}</p>
+            <div className="flex items-start">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-400 mr-2 flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              <p className="text-red-400 text-sm">{error}</p>
+            </div>
           </div>
         )}
         
@@ -180,22 +205,25 @@ const ReportVerificationCard = ({ report, index, onVerify }) => {
             <label className="block text-[#94A3B8] text-sm mb-2">
               Tokens to Mint (Carbon Credits)
             </label>
-            <input
-              type="number"
-              min="1"
-              step="1"
-              value={tokensToMint}
-              onChange={(e) => setTokensToMint(Math.max(1, parseInt(e.target.value) || 1))}
-              className="w-full bg-[#0F172A] border border-[#76EAD7]/30 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-[#76EAD7]/50"
-              placeholder="Enter amount of tokens"
-            />
+            <div className={`relative rounded-lg border ${error ? 'border-red-500/50' : 'border-[#76EAD7]/30'} focus-within:ring-2 focus-within:ring-[#76EAD7]/50 bg-[#0F172A]`}>
+              <input
+                type="number"
+                min="1"
+                step="1"
+                value={tokensToMint}
+                onChange={(e) => setTokensToMint(Math.max(1, parseInt(e.target.value) || 1))}
+                className="w-full rounded-lg px-4 py-2 text-white bg-transparent focus:outline-none"
+                placeholder="Enter amount of tokens"
+              />
+            </div>
+            <p className="text-xs text-[#94A3B8] mt-1">Must be a whole number greater than 0</p>
           </div>
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleVerify}
             disabled={isVerifying}
-            className="px-6 py-3 rounded-lg bg-gradient-to-r from-[#76EAD7] to-[#C4FB6D] text-[#0F172A] font-semibold hover:shadow-lg transition-all flex items-center justify-center md:w-auto w-full"
+            className="px-6 py-3 rounded-lg bg-gradient-to-r from-[#76EAD7] to-[#C4FB6D] text-[#0F172A] font-semibold hover:shadow-lg transition-all flex items-center justify-center md:w-auto w-full disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {isVerifying ? (
               <>
