@@ -5,7 +5,7 @@ import RegistrationModal from '../components/company/registration_modal';
 import CompanyProfile from '../components/company/company_profile';
 import ReportSubmissionModal from '../components/company/report_submission_modal';
 import { getAllCompanies } from '../services/auth_service';
-
+import metamaskIcon from '../assets/metamask.png';
 const Companies = () => {
   const { 
     walletAddress, 
@@ -145,15 +145,15 @@ const Companies = () => {
                 </>
               ) : walletAddress ? (
                 <>
-                  <img src="/src/assets/metamask.png" alt="MetaMask" className="w-5 h-5 mr-2" />
-                  <span className="font-mono text-sm truncate max-w-[100px]">
+              <img src={metamaskIcon} alt="MetaMask" className="w-5 h-5 mr-2" />
+              <span className="font-mono text-sm truncate max-w-[100px]">
                     {walletAddress.substring(0, 6)}...{walletAddress.substring(walletAddress.length - 4)}
                   </span>
                 </>
               ) : (
                 <>
-                  <img src="/src/assets/metamask.png" alt="MetaMask" className="w-5 h-5 mr-2" />
-                  <span>Connect MetaMask</span>
+              <img src={metamaskIcon} alt="MetaMask" className="w-5 h-5 mr-2" />
+              <span>Connect MetaMask</span>
                 </>
               )}
             </motion.button>
@@ -164,7 +164,7 @@ const Companies = () => {
               onClick={handleInstallMetaMask}
               className="px-4 py-2 rounded-lg border border-orange-500 bg-orange-500/10 text-white flex items-center"
             >
-              <img src="/src/assets/metamask.png" alt="MetaMask" className="w-5 h-5 mr-2" />
+              <img src={metamaskIcon} alt="MetaMask" className="w-5 h-5 mr-2" />
               <span>Install MetaMask</span>
             </motion.button>
           )}

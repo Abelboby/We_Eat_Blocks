@@ -6,6 +6,7 @@ import { getPendingReports } from '../services/carbon_contract_service';
 import CompanyVerificationCard from '../components/admin/company_verification_card';
 import ReportVerificationCard from '../components/admin/report_verification_card';
 import Toast from '../components/ui/toast';
+import metamaskIcon from '../assets/metamask.png';
 
 const Admin = () => {
   const [walletAddress, setWalletAddress] = useState(null);
@@ -162,7 +163,7 @@ const Admin = () => {
           {walletAddress ? (
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="bg-[#0F172A]/80 px-4 py-2 rounded-xl border border-[#76EAD7]/10 flex items-center">
-                <img src="/src/assets/metamask.png" alt="MetaMask" className="w-4 h-4 mr-2" />
+              <img src={metamaskIcon} alt="MetaMask" className="w-5 h-5 mr-2" />
                 <span className="text-white text-sm font-mono truncate max-w-[150px]">
                   {walletAddress.substring(0, 6)}...{walletAddress.substring(walletAddress.length - 4)}
                 </span>
@@ -193,8 +194,8 @@ const Admin = () => {
                 </>
               ) : (
                 <>
-                  <img src="/src/assets/metamask.png" alt="MetaMask" className="w-5 h-5 mr-2" />
-                  <span>Connect MetaMask</span>
+              <img src={metamaskIcon} alt="MetaMask" className="w-5 h-5 mr-2" />
+              <span>Connect MetaMask</span>
                 </>
               )}
             </motion.button>
@@ -256,7 +257,7 @@ const Admin = () => {
             </p>
             <div className="bg-[#0F172A]/60 rounded-lg p-3 mb-6 max-w-md mx-auto text-left">
               <div className="flex items-center">
-                <img src="/src/assets/metamask.png" alt="MetaMask" className="w-6 h-6 mr-3" />
+              <img src={metamaskIcon} alt="MetaMask" className="w-5 h-5 mr-2" />
                 <div>
                   <p className="text-white text-sm font-medium">Connected Address:</p>
                   <p className="text-[#94A3B8] text-xs font-mono">{walletAddress}</p>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { registerCompany } from '../../services/auth_service';
 import { useWallet } from '../../context/wallet_context';
+import metamaskIcon from '../../assets/metamask.png';
 
 const RegistrationModal = ({ isOpen, onClose }) => {
   const { walletAddress, setCompanyData } = useWallet();
@@ -278,7 +279,7 @@ const RegistrationModal = ({ isOpen, onClose }) => {
                     <div className="mt-4 p-3 bg-[#0F172A]/80 rounded-lg border border-[#76EAD7]/10">
                       <div className="flex items-center">
                         <div className="flex-shrink-0">
-                          <img src="/src/assets/metamask.png" alt="MetaMask" className="w-10 h-10" />
+                        <img src={metamaskIcon} alt="MetaMask" className="w-5 h-5 mr-2" />
                         </div>
                         <div className="ml-3">
                           <p className="text-sm font-medium text-white">Connected MetaMask Wallet</p>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { verifyReport } from '../../services/carbon_contract_service';
+import metamaskIcon from '../../assets/metamask.png';
 
 const ReportVerificationCard = ({ report, index, onVerify }) => {
   const [tokensToMint, setTokensToMint] = useState(1);
@@ -110,7 +111,7 @@ const ReportVerificationCard = ({ report, index, onVerify }) => {
           <div className="bg-[#0F172A]/60 rounded-xl p-4">
             <h4 className="text-[#76EAD7] font-medium mb-2">Reporter</h4>
             <div className="flex items-center">
-              <img src="/src/assets/metamask.png" alt="MetaMask" className="w-5 h-5 mr-2" />
+              <img src={metamaskIcon} alt="MetaMask" className="w-5 h-5 mr-2" />
               <a 
                 href={`https://etherscan.io/address/${report.reporter}`}
                 target="_blank" 
