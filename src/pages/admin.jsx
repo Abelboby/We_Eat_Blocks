@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { connectWallet } from '../services/auth_service';
 import { isAdmin, getPendingCompanies, getAllCompanies } from '../services/auth_service';
+import { getPendingReports } from '../services/carbon_contract_service';
 import CompanyVerificationCard from '../components/admin/company_verification_card';
+import ReportVerificationCard from '../components/admin/report_verification_card';
 import Toast from '../components/ui/toast';
 
 const Admin = () => {
@@ -16,8 +18,10 @@ const Admin = () => {
   const [pendingCompanies, setPendingCompanies] = useState([]);
   const [approvedCompanies, setApprovedCompanies] = useState([]);
   const [rejectedCompanies, setRejectedCompanies] = useState([]);
+  const [pendingReports, setPendingReports] = useState([]);
   const [activeTab, setActiveTab] = useState('pending');
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingReports, setIsLoadingReports] = useState(false);
   
   // Connect wallet function
   const handleConnectWallet = async () => {
@@ -40,6 +44,7 @@ const Admin = () => {
           });
         } else {
           loadCompaniesData();
+          loadPendingReports();
         }
       } else {
         setConnectionError(result.error);
@@ -55,6 +60,7 @@ const Admin = () => {
   const handleDisconnect = () => {
     setWalletAddress(null);
     setIsAdminUser(false);
+    setPendingReports([]);
   };
   
   // Load companies data
@@ -77,6 +83,25 @@ const Admin = () => {
       console.error("Error loading companies:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+  
+  // Load pending reports
+  const loadPendingReports = async () => {
+    try {
+      setIsLoadingReports(true);
+      
+      const result = await getPendingReports();
+      
+      if (result.success) {
+        setPendingReports(result.reports);
+      } else {
+        console.error("Error fetching pending reports:", result.error);
+      }
+    } catch (error) {
+      console.error("Error loading pending reports:", error);
+    } finally {
+      setIsLoadingReports(false);
     }
   };
   
@@ -107,13 +132,25 @@ const Admin = () => {
     });
   };
   
+  // Handle report verification
+  const handleReportVerification = (reportIndex, tokensMinted) => {
+    // Remove the verified report from the list
+    const updatedReports = pendingReports.filter((_, index) => index !== reportIndex);
+    setPendingReports(updatedReports);
+    
+    setToast({
+      type: 'success',
+      message: `Report verified successfully. ${tokensMinted} carbon credit tokens minted.`
+    });
+  };
+  
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
         <div>
           <h1 className="text-2xl font-bold text-white mb-2">Admin Panel</h1>
-          <p className="text-[#94A3B8]">Manage company verification requests</p>
+          <p className="text-[#94A3B8]">Manage company verification requests and sustainability reports</p>
         </div>
         
         <div className="mt-4 md:mt-0">
@@ -235,16 +272,16 @@ const Admin = () => {
           <div>
             {/* Tabs */}
             <div className="border-b border-[#76EAD7]/10 mb-6">
-              <nav className="flex space-x-8">
+              <nav className="flex space-x-8 overflow-x-auto scrollbar-hide">
                 <button
                   onClick={() => setActiveTab('pending')}
-                  className={`py-3 px-1 border-b-2 font-medium text-sm flex items-center ${
+                  className={`py-3 px-1 border-b-2 font-medium text-sm flex items-center whitespace-nowrap ${
                     activeTab === 'pending'
                       ? 'border-[#76EAD7] text-[#76EAD7]'
                       : 'border-transparent text-[#94A3B8] hover:text-white'
                   }`}
                 >
-                  <span>Pending</span>
+                  <span>Pending Companies</span>
                   {pendingCompanies.length > 0 && (
                     <span className="ml-2 px-2 py-0.5 bg-yellow-500/20 text-yellow-400 rounded-full text-xs">
                       {pendingCompanies.length}
@@ -254,13 +291,13 @@ const Admin = () => {
                 
                 <button
                   onClick={() => setActiveTab('approved')}
-                  className={`py-3 px-1 border-b-2 font-medium text-sm flex items-center ${
+                  className={`py-3 px-1 border-b-2 font-medium text-sm flex items-center whitespace-nowrap ${
                     activeTab === 'approved'
                       ? 'border-[#76EAD7] text-[#76EAD7]'
                       : 'border-transparent text-[#94A3B8] hover:text-white'
                   }`}
                 >
-                  <span>Approved</span>
+                  <span>Approved Companies</span>
                   {approvedCompanies.length > 0 && (
                     <span className="ml-2 px-2 py-0.5 bg-green-500/20 text-green-400 rounded-full text-xs">
                       {approvedCompanies.length}
@@ -270,16 +307,32 @@ const Admin = () => {
                 
                 <button
                   onClick={() => setActiveTab('rejected')}
-                  className={`py-3 px-1 border-b-2 font-medium text-sm flex items-center ${
+                  className={`py-3 px-1 border-b-2 font-medium text-sm flex items-center whitespace-nowrap ${
                     activeTab === 'rejected'
                       ? 'border-[#76EAD7] text-[#76EAD7]'
                       : 'border-transparent text-[#94A3B8] hover:text-white'
                   }`}
                 >
-                  <span>Rejected</span>
+                  <span>Rejected Companies</span>
                   {rejectedCompanies.length > 0 && (
                     <span className="ml-2 px-2 py-0.5 bg-red-500/20 text-red-400 rounded-full text-xs">
                       {rejectedCompanies.length}
+                    </span>
+                  )}
+                </button>
+                
+                <button
+                  onClick={() => setActiveTab('reports')}
+                  className={`py-3 px-1 border-b-2 font-medium text-sm flex items-center whitespace-nowrap ${
+                    activeTab === 'reports'
+                      ? 'border-[#76EAD7] text-[#76EAD7]'
+                      : 'border-transparent text-[#94A3B8] hover:text-white'
+                  }`}
+                >
+                  <span>Sustainability Reports</span>
+                  {pendingReports.length > 0 && (
+                    <span className="ml-2 px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-full text-xs">
+                      {pendingReports.length}
                     </span>
                   )}
                 </button>
@@ -287,7 +340,7 @@ const Admin = () => {
             </div>
             
             {/* Loading state */}
-            {isLoading ? (
+            {(isLoading && activeTab !== 'reports') || (isLoadingReports && activeTab === 'reports') ? (
               <div className="flex items-center justify-center py-20">
                 <div className="w-12 h-12 border-4 border-[#76EAD7]/30 border-t-[#76EAD7] rounded-full animate-spin"></div>
               </div>
@@ -358,6 +411,47 @@ const Admin = () => {
                           onStatusChange={handleCompanyStatusChange}
                         />
                       ))
+                    )}
+                  </div>
+                )}
+                
+                {/* Reports Tab */}
+                {activeTab === 'reports' && (
+                  <div>
+                    <div className="flex justify-between items-center mb-6">
+                      <h2 className="text-xl font-bold text-white gradient-text">Sustainability Reports</h2>
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={loadPendingReports}
+                        className="px-4 py-2 rounded-lg bg-[#76EAD7]/10 text-[#76EAD7] border border-[#76EAD7]/30 flex items-center hover:bg-[#76EAD7]/20 transition-colors"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                        </svg>
+                        Refresh
+                      </motion.button>
+                    </div>
+                    
+                    {pendingReports.length === 0 ? (
+                      <div className="text-center py-20 bg-[#1E293B]/50 backdrop-blur-xl rounded-2xl border border-[#76EAD7]/10">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-[#76EAD7]/30 mx-auto mb-4" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V8z" />
+                        </svg>
+                        <h3 className="text-xl font-medium text-white mb-2">No Pending Reports</h3>
+                        <p className="text-[#94A3B8]">There are no sustainability reports awaiting verification.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-6">
+                        {pendingReports.map((report, index) => (
+                          <ReportVerificationCard
+                            key={index}
+                            report={report}
+                            index={index}
+                            onVerify={handleReportVerification}
+                          />
+                        ))}
+                      </div>
                     )}
                   </div>
                 )}

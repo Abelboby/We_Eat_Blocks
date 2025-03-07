@@ -1258,4 +1258,30 @@ export const getTokenBalance = async (address) => {
       error: error.message || 'Failed to get token balance'
     };
   }
+};
+
+// Verify a report (admin only)
+export const verifyReport = async (reportIndex, tokensToMint) => {
+  try {
+    const contract = await getContract();
+    
+    // Ensure proper conversion of tokensToMint to a BigNumber
+    const tokensAmount = ethers.utils.parseEther(tokensToMint.toString());
+    
+    const tx = await contract.verifyReport(reportIndex, tokensAmount);
+    await tx.wait();
+    
+    return {
+      success: true,
+      error: null,
+      transaction: tx
+    };
+  } catch (error) {
+    console.error('Error verifying report:', error);
+    return {
+      success: false,
+      error: error.message || 'Failed to verify report. Please ensure you have admin rights.',
+      transaction: null
+    };
+  }
 }; 
