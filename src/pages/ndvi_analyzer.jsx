@@ -75,11 +75,29 @@ const DrawControls = ({ onRectangleDrawn }) => {
         drawnItems.addLayer(layer);
         
         const bounds = layer.getBounds();
+        
+        // Ensure coordinates are properly ordered (North > South, East > West)
+        const north = bounds.getNorth();
+        const south = bounds.getSouth();
+        const east = bounds.getEast();
+        const west = bounds.getWest();
+        
+        // Make sure there's a small difference if the coordinates are very close
+        const minDifference = 0.0000001; // Small threshold to ensure difference
+        
+        // If north and south are too close or equal, adjust them slightly
+        const adjustedNorth = north === south ? north + minDifference : north;
+        const adjustedSouth = north === south ? south - minDifference : south;
+        
+        // Similarly for east and west
+        const adjustedEast = east === west ? east + minDifference : east;
+        const adjustedWest = east === west ? west - minDifference : west;
+        
         onRectangleDrawn({
-          north: bounds.getNorth(),
-          south: bounds.getSouth(),
-          east: bounds.getEast(),
-          west: bounds.getWest(),
+          north: adjustedNorth,
+          south: adjustedSouth,
+          east: adjustedEast,
+          west: adjustedWest,
         });
       }
     });
@@ -135,16 +153,36 @@ const NDVIAnalyzer = () => {
   
   // Handle rectangle drawn on map
   const handleRectangleDrawn = (rectCoords) => {
-    setCoordinates(rectCoords);
+    // Process the coordinates to ensure North > South and East > West
+    const north = Math.max(rectCoords.north, rectCoords.south);
+    const south = Math.min(rectCoords.north, rectCoords.south);
+    const east = Math.max(rectCoords.east, rectCoords.west);
+    const west = Math.min(rectCoords.east, rectCoords.west);
+    
+    setCoordinates({
+      north,
+      south,
+      east,
+      west
+    });
   };
   
   // Handle coordinate input changes
   const handleCoordinateChange = (e) => {
     const { name, value } = e.target;
-    setCoordinates((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    
+    // Update the coordinates state
+    setCoordinates((prev) => {
+      const newCoordinates = {
+        ...prev,
+        [name]: value,
+      };
+      
+      // Clear any previous errors when coordinates are changed
+      setError(null);
+      
+      return newCoordinates;
+    });
   };
   
   // Handle year input changes
