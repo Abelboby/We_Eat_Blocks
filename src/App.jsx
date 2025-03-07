@@ -5,6 +5,7 @@ import Navbar from './components/Navbar';
 import SplashScreen from './components/SplashScreen';
 import { mainRoutes, dashboardRoutes } from './routes';
 import DashboardLayout from './components/layouts/DashboardLayout';
+import { WalletProvider } from './context/wallet_context';
 
 // Create Context without theme toggle
 export const ThemeContext = createContext({
@@ -48,9 +49,11 @@ const AppContent = () => {
 
 function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <WalletProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </WalletProvider>
   );
 }
 
