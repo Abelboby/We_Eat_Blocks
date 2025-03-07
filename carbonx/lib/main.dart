@@ -41,7 +41,10 @@ void main() async {
         // Wallet Services
         Provider<WalletService>(create: (_) => walletService),
         ChangeNotifierProvider<WalletProvider>(
-          create: (context) => WalletProvider(context.read<WalletService>()),
+          create: (context) => WalletProvider(
+            context.read<WalletService>(),
+            context.read<UserService>(),
+          ),
         ),
       ],
       child: const CarbonXApp(),

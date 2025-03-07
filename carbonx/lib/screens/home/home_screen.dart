@@ -342,7 +342,26 @@ class ProfilePage extends StatelessWidget {
   }
 
   List<Widget> _buildProfileOptions(BuildContext context) {
+    final user = AuthProvider.of(context).currentUser;
+
     return [
+      if (user?.hasWallet == true)
+        _ProfileOption(
+          icon: Icons.account_balance_wallet_outlined,
+          title: 'Connected Wallet',
+          subtitle: _formatWalletAddress(user?.walletAddress),
+          onTap: () {
+            // Navigate to wallet tab
+            if (context.mounted) {
+              final homeState =
+                  context.findAncestorStateOfType<_HomeScreenState>();
+              if (homeState != null) {
+                homeState._onItemTapped(3); // Index 3 is the wallet tab
+              }
+            }
+          },
+        ),
+      if (user?.hasWallet == true) const SizedBox(height: AppTheme.spacing3),
       _ProfileOption(
         icon: Icons.settings_outlined,
         title: 'Account Settings',
@@ -377,6 +396,19 @@ class ProfilePage extends StatelessWidget {
     ];
   }
 
+  String _formatWalletAddress(String? address) {
+    if (address == null || address.isEmpty) {
+      return '';
+    }
+
+    // Format as 0x1234...5678
+    if (address.length > 10) {
+      return '${address.substring(0, 6)}...${address.substring(address.length - 4)}';
+    }
+
+    return address;
+  }
+
   void _signOut(BuildContext context) async {
     final authProvider = AuthProvider.of(context, listen: false);
 
@@ -404,11 +436,13 @@ class ProfilePage extends StatelessWidget {
 class _ProfileOption extends StatelessWidget {
   final IconData icon;
   final String title;
+  final String? subtitle;
   final VoidCallback onTap;
 
   const _ProfileOption({
     required this.icon,
     required this.title,
+    this.subtitle,
     required this.onTap,
   });
 
@@ -428,9 +462,24 @@ class _ProfileOption extends StatelessWidget {
             Icon(icon),
             const SizedBox(width: AppTheme.spacing3),
             Expanded(
-              child: Text(
-                title,
-                style: Theme.of(context).textTheme.titleMedium,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  if (subtitle != null)
+                    Text(
+                      subtitle!,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withOpacity(0.6),
+                          ),
+                    ),
+                ],
               ),
             ),
             const Icon(Icons.chevron_right),

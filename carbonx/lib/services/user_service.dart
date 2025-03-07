@@ -123,6 +123,35 @@ class UserService {
     }
   }
 
+  // Update wallet address
+  Future<void> updateWalletAddress(String userId, String walletAddress) async {
+    try {
+      await _usersCollection.doc(userId).update({
+        'walletAddress': walletAddress,
+        'walletConnectedAt': FieldValue.serverTimestamp(),
+      });
+      debugPrint('Wallet address updated for user: $userId');
+    } catch (e) {
+      debugPrint('Error updating wallet address: $e');
+      rethrow;
+    }
+  }
+
+  // Check if user has a wallet connected
+  Future<bool> hasConnectedWallet(String userId) async {
+    try {
+      final docSnapshot = await _usersCollection.doc(userId).get();
+      if (docSnapshot.exists) {
+        final data = docSnapshot.data() as Map<String, dynamic>;
+        return data.containsKey('walletAddress') && data['walletAddress'] != null;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error checking if user has wallet: $e');
+      return false;
+    }
+  }
+
   // Stream of user data for real-time updates
   Stream<UserModel?> userStream(String userId) {
     return _usersCollection.doc(userId).snapshots().map((snapshot) {

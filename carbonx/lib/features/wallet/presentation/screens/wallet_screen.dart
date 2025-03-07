@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:web3dart/web3dart.dart';
 import '../../providers/wallet_provider.dart';
 import '../../widgets/import_wallet_dialog.dart';
+import '../../../../services/user_service.dart';
 
 class WalletScreen extends StatefulWidget {
   const WalletScreen({Key? key}) : super(key: key);
@@ -27,7 +29,21 @@ class _WalletScreenState extends State<WalletScreen> {
           if (provider.error != null) {
             _showErrorSnackBar(provider.error!);
           } else {
-            _showSuccessSnackBar('Wallet imported successfully!');
+            final userService =
+                Provider.of<UserService>(context, listen: false);
+            final userId = userService.currentUserId;
+
+            if (userId != null) {
+              final hasConnected = await userService.hasConnectedWallet(userId);
+              if (hasConnected) {
+                _showSuccessSnackBar(
+                    'Wallet successfully connected to your account!');
+              } else {
+                _showSuccessSnackBar('Wallet imported successfully!');
+              }
+            } else {
+              _showSuccessSnackBar('Wallet imported successfully!');
+            }
           }
         }
       } catch (e) {
@@ -144,7 +160,17 @@ class _WalletScreenState extends State<WalletScreen> {
                           IconButton(
                             icon: const Icon(Icons.copy),
                             onPressed: () {
-                              // Copy address logic
+                              if (walletProvider.address != null) {
+                                Clipboard.setData(ClipboardData(
+                                    text: walletProvider.address!));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content:
+                                        Text('Address copied to clipboard'),
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                              }
                             },
                             tooltip: 'Copy Address',
                           ),

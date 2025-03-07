@@ -9,6 +9,8 @@ class UserModel {
   final int carbonCredits;
   final double carbonFootprint;
   final int offsetPercentage;
+  final String? walletAddress;
+  final DateTime? walletConnectedAt;
 
   UserModel({
     required this.id,
@@ -21,6 +23,8 @@ class UserModel {
     this.carbonCredits = 0,
     this.carbonFootprint = 0.0,
     this.offsetPercentage = 0,
+    this.walletAddress,
+    this.walletConnectedAt,
   });
 
   factory UserModel.fromFirebase(dynamic user) {
@@ -61,6 +65,8 @@ class UserModel {
     int? carbonCredits,
     double? carbonFootprint,
     int? offsetPercentage,
+    String? walletAddress,
+    DateTime? walletConnectedAt,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -73,6 +79,8 @@ class UserModel {
       carbonCredits: carbonCredits ?? this.carbonCredits,
       carbonFootprint: carbonFootprint ?? this.carbonFootprint,
       offsetPercentage: offsetPercentage ?? this.offsetPercentage,
+      walletAddress: walletAddress ?? this.walletAddress,
+      walletConnectedAt: walletConnectedAt ?? this.walletConnectedAt,
     );
   }
 
@@ -88,6 +96,8 @@ class UserModel {
       'carbonCredits': carbonCredits,
       'carbonFootprint': carbonFootprint,
       'offsetPercentage': offsetPercentage,
+      'walletAddress': walletAddress,
+      'walletConnectedAt': walletConnectedAt?.millisecondsSinceEpoch,
     };
   }
 
@@ -107,6 +117,10 @@ class UserModel {
       carbonCredits: map['carbonCredits'] ?? 0,
       carbonFootprint: map['carbonFootprint'] ?? 0.0,
       offsetPercentage: map['offsetPercentage'] ?? 0,
+      walletAddress: map['walletAddress'],
+      walletConnectedAt: map['walletConnectedAt'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['walletConnectedAt'])
+          : null,
     );
   }
 
@@ -122,6 +136,8 @@ class UserModel {
       carbonCredits: map['carbonCredits'] ?? 0,
       carbonFootprint: map['carbonFootprint'] ?? 0.0,
       offsetPercentage: map['offsetPercentage'] ?? 0,
+      walletAddress: map['walletAddress'],
+      walletConnectedAt: map['walletConnectedAt']?.toDate(),
     );
   }
 
@@ -134,10 +150,12 @@ class UserModel {
       'carbonCredits': carbonCredits,
       'carbonFootprint': carbonFootprint,
       'offsetPercentage': offsetPercentage,
+      'walletAddress': walletAddress,
       // Don't include ID as it's the document ID
       // Use server timestamp for these fields when creating/updating
     };
   }
 
   bool get isAuthenticated => id.isNotEmpty;
+  bool get hasWallet => walletAddress != null && walletAddress!.isNotEmpty;
 }

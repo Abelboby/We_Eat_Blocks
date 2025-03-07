@@ -1,9 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:web3dart/web3dart.dart';
 import '../../../core/services/wallet_service.dart';
+import '../../../services/user_service.dart';
 
 class WalletProvider extends ChangeNotifier {
   final WalletService _walletService;
+  final UserService _userService;
 
   Credentials? _credentials;
   String? _address;
@@ -12,7 +14,7 @@ class WalletProvider extends ChangeNotifier {
   String? _error;
   bool _isBalanceLoading = false;
 
-  WalletProvider(this._walletService) {
+  WalletProvider(this._walletService, this._userService) {
     _initWallet();
   }
 
@@ -43,12 +45,34 @@ class WalletProvider extends ChangeNotifier {
 
       _credentials = await _walletService.importWallet(privateKey);
       _address = (await _credentials!.extractAddress()).hex;
+
+      // Save wallet address to user document
+      await _saveWalletAddressToUser();
+
       await _updateBalance();
     } catch (e) {
       _error = 'Failed to import wallet: ${e.toString()}';
       debugPrint(_error);
     } finally {
       _setLoading(false);
+    }
+  }
+
+  Future<void> _saveWalletAddressToUser() async {
+    if (_address == null) return;
+
+    final userId = _userService.currentUserId;
+    if (userId == null) {
+      debugPrint('Cannot save wallet address: User not logged in');
+      return;
+    }
+
+    try {
+      await _userService.updateWalletAddress(userId, _address!);
+      debugPrint('Wallet address saved to user document');
+    } catch (e) {
+      // Just log the error but don't set _error because the wallet import itself succeeded
+      debugPrint('Error saving wallet address to user document: $e');
     }
   }
 
@@ -76,6 +100,10 @@ class WalletProvider extends ChangeNotifier {
     try {
       _setLoading(true);
       await _walletService.removeWallet();
+
+      // Remove wallet address from user document
+      await _removeWalletAddressFromUser();
+
       _credentials = null;
       _address = null;
       _balance = null;
@@ -85,6 +113,21 @@ class WalletProvider extends ChangeNotifier {
       debugPrint(_error);
     } finally {
       _setLoading(false);
+    }
+  }
+
+  Future<void> _removeWalletAddressFromUser() async {
+    final userId = _userService.currentUserId;
+    if (userId == null) {
+      debugPrint('Cannot remove wallet address: User not logged in');
+      return;
+    }
+
+    try {
+      await _userService.updateWalletAddress(userId, '');
+      debugPrint('Wallet address removed from user document');
+    } catch (e) {
+      debugPrint('Error removing wallet address from user document: $e');
     }
   }
 
