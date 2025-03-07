@@ -9,11 +9,15 @@ import {
   doc, 
   getDoc, 
   setDoc, 
+  updateDoc,
   collection, 
   query, 
   where, 
   getDocs 
 } from 'firebase/firestore';
+
+// Admin wallet address
+export const ADMIN_WALLET_ADDRESS = "0x5dE5A56Db872318af6F45e1e96154cD811A57C76";
 
 // Connect to MetaMask wallet
 export const connectWallet = async () => {
@@ -150,6 +154,7 @@ export const registerCompany = async (companyData) => {
       ...companyData,
       registrationDate: new Date(),
       isVerified: false,
+      verificationStatus: 'pending',
       tokenBalances: {
         carbonCredits: 0
       },
@@ -201,6 +206,123 @@ export const signOut = async () => {
     return { success: true };
   } catch (error) {
     console.error("Error signing out:", error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+};
+
+// Check if wallet is admin
+export const isAdmin = (walletAddress) => {
+  return walletAddress && walletAddress.toLowerCase() === ADMIN_WALLET_ADDRESS.toLowerCase();
+};
+
+// Get pending company verification requests
+export const getPendingCompanies = async () => {
+  try {
+    const pendingQuery = query(
+      collection(db, "companies"),
+      where("verificationStatus", "==", "pending")
+    );
+    
+    const querySnapshot = await getDocs(pendingQuery);
+    
+    if (querySnapshot.empty) {
+      return {
+        success: true,
+        companies: []
+      };
+    }
+    
+    const pendingCompanies = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    
+    return {
+      success: true,
+      companies: pendingCompanies
+    };
+  } catch (error) {
+    console.error("Error getting pending companies:", error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+};
+
+// Get all companies
+export const getAllCompanies = async () => {
+  try {
+    const companiesSnapshot = await getDocs(collection(db, "companies"));
+    
+    if (companiesSnapshot.empty) {
+      return {
+        success: true,
+        companies: []
+      };
+    }
+    
+    const companies = companiesSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    
+    return {
+      success: true,
+      companies: companies
+    };
+  } catch (error) {
+    console.error("Error getting all companies:", error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+};
+
+// Approve company verification
+export const approveCompany = async (companyId) => {
+  try {
+    const companyRef = doc(db, "companies", companyId);
+    
+    await updateDoc(companyRef, {
+      isVerified: true,
+      verificationStatus: 'approved',
+      verificationDate: new Date()
+    });
+    
+    return {
+      success: true
+    };
+  } catch (error) {
+    console.error("Error approving company:", error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+};
+
+// Reject company verification
+export const rejectCompany = async (companyId, reason) => {
+  try {
+    const companyRef = doc(db, "companies", companyId);
+    
+    await updateDoc(companyRef, {
+      isVerified: false,
+      verificationStatus: 'rejected',
+      rejectionReason: reason || 'No reason provided',
+      rejectionDate: new Date()
+    });
+    
+    return {
+      success: true
+    };
+  } catch (error) {
+    console.error("Error rejecting company:", error);
     return {
       success: false,
       error: error.message

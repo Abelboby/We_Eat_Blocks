@@ -95,9 +95,20 @@ const CompanyProfile = () => {
           <div className="p-4 bg-[#0F172A]/60 rounded-xl border border-[#76EAD7]/10">
             <p className="text-[#94A3B8] text-sm">Status</p>
             <div className="flex items-center mt-1">
-              <div className={`w-2 h-2 rounded-full ${company?.isVerified ? 'bg-green-400' : 'bg-yellow-400'} mr-2`}></div>
-              <p className="text-white font-medium">{company?.isVerified ? 'Verified' : 'Pending Verification'}</p>
+              <div className={`w-2 h-2 rounded-full ${
+                company?.verificationStatus === 'approved' ? 'bg-green-400' : 
+                company?.verificationStatus === 'rejected' ? 'bg-red-400' : 'bg-yellow-400'
+              } mr-2`}></div>
+              <p className="text-white font-medium">
+                {company?.verificationStatus === 'approved' ? 'Verified' : 
+                 company?.verificationStatus === 'rejected' ? 'Rejected' : 'Pending Verification'}
+              </p>
             </div>
+            {company?.verificationStatus === 'rejected' && company?.rejectionReason && (
+              <p className="text-red-400 text-xs mt-2">
+                Reason: {company.rejectionReason}
+              </p>
+            )}
           </div>
           
           <div className="p-4 bg-[#0F172A]/60 rounded-xl border border-[#76EAD7]/10">

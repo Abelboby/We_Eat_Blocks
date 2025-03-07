@@ -6,6 +6,7 @@ import CrossChain from './pages/cross_chain';
 import Retirements from './pages/retirements';
 import NDVIAnalyzer from './pages/ndvi_analyzer';
 import Companies from './pages/companies';
+import Admin from './pages/admin';
 
 // Main application routes
 export const mainRoutes = [
@@ -58,5 +59,9 @@ export const dashboardRoutes = [
   {
     path: '/dashboard/companies',
     element: <Companies />,
+  },
+  {
+    path: '/dashboard/admin',
+    element: <Admin />,
   },
 ]; 
