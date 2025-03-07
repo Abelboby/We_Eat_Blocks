@@ -143,7 +143,8 @@ class UserService {
       final docSnapshot = await _usersCollection.doc(userId).get();
       if (docSnapshot.exists) {
         final data = docSnapshot.data() as Map<String, dynamic>;
-        return data.containsKey('walletAddress') && data['walletAddress'] != null;
+        return data.containsKey('walletAddress') &&
+            data['walletAddress'] != null;
       }
       return false;
     } catch (e) {
