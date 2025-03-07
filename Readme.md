@@ -18,7 +18,7 @@ A concise, engaging description of your hackathon project.
   - Node.js (v14+)
   - npm (v6+)
   - Python (v3.8+)
-  ```
+  ``` 
 
 ## 🔧 Installation & Setup
 
