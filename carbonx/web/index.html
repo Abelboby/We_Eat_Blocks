@@ -31,8 +31,22 @@
 
   <title>carbonx</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js"></script>
 </head>
 <body>
+  <!-- Add Firebase configuration script -->
+  <script>
+    // Your web app's Firebase configuration - this will be populated by the Flutter app
+    // The actual config is loaded by the Firebase Flutter plugin
+    if (typeof window.firebase === 'undefined') {
+      window.firebase = {};
+    }
+  </script>
+
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

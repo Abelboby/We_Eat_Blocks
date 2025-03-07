@@ -1,12 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'theme/theme_provider.dart';
+import 'services/auth_service.dart';
+import 'services/auth_provider.dart';
+import 'services/user_service.dart';
 import 'screens/authentication/login_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+
+  // Create services
+  final userService = UserService();
+  final authService = AuthService();
+
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => ThemeProvider(),
+    MultiProvider(
+      providers: [
+        // Theme Provider
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+
+        // Auth Services
+        Provider<UserService>(create: (_) => userService),
+        ChangeNotifierProvider<AuthService>(create: (_) => authService),
+        ChangeNotifierProxyProvider<AuthService, AuthProvider>(
+          create: (context) => AuthProvider(context.read<AuthService>()),
+          update: (context, authService, previous) =>
+              previous ?? AuthProvider(authService),
+        ),
+      ],
       child: const CarbonXApp(),
     ),
   );

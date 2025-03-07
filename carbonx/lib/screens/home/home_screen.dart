@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/theme_provider.dart';
-import '../../widgets/carbon_credit_card.dart';
-import '../../widgets/eco_action_card.dart';
-import '../../widgets/stats_card.dart';
+import '../../services/auth_provider.dart';
+import '../authentication/login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,14 +13,14 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
-  
+
   final List<Widget> _pages = [
     const DashboardPage(),
-    const Placeholder(key: ValueKey('marketplace')),
-    const Placeholder(key: ValueKey('projects')),
-    const Placeholder(key: ValueKey('profile')),
+    const MarketplacePage(),
+    const ProjectsPage(),
+    const ProfilePage(),
   ];
-  
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -36,6 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
+        type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard_outlined),
@@ -68,233 +67,369 @@ class DashboardPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: CustomScrollView(
-        slivers: [
-          // App Bar
-          SliverAppBar(
-            pinned: true,
-            title: const Text('CarbonX'),
-            actions: [
-              // Theme toggle
-              IconButton(
-                icon: Icon(
-                  ThemeProvider.of(context).isDarkMode
-                      ? Icons.light_mode_outlined
-                      : Icons.dark_mode_outlined,
+    return Scaffold(
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              pinned: true,
+              title: const Text('Dashboard'),
+              actions: [
+                IconButton(
+                  icon: Icon(
+                    ThemeProvider.of(context).isDarkMode
+                        ? Icons.light_mode_outlined
+                        : Icons.dark_mode_outlined,
+                  ),
+                  onPressed: () {
+                    ThemeProvider.of(context).toggleTheme();
+                  },
                 ),
-                onPressed: () {
-                  ThemeProvider.of(context).toggleTheme();
-                },
-              ),
-              
-              // Notifications
-              IconButton(
-                icon: const Icon(Icons.notifications_outlined),
-                onPressed: () {
-                  // TODO: Show notifications
-                },
-              ),
-            ],
-          ),
-          
-          // Content
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(AppTheme.spacing3),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Greeting
-                  Text(
-                    'Hello, Eco Warrior!',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  )
-                    .animate()
-                    .fadeIn(duration: AppTheme.defaultAnimationDuration)
-                    .slideX(
-                      begin: 0.1,
-                      end: 0,
-                      duration: AppTheme.defaultAnimationDuration,
-                      curve: Curves.easeOutCubic,
+              ],
+            ),
+            SliverFillRemaining(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.dashboard_customize_outlined,
+                      size: 64,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
-                    
-                  const SizedBox(height: AppTheme.spacing2),
-                  
-                  Text(
-                    'Track your carbon footprint and make a difference',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  )
-                    .animate()
-                    .fadeIn(
-                      delay: AppTheme.defaultAnimationDuration * 0.5,
-                      duration: AppTheme.defaultAnimationDuration,
+                    const SizedBox(height: AppTheme.spacing4),
+                    Text(
+                      'Dashboard Coming Soon',
+                      style: Theme.of(context).textTheme.headlineSmall,
                     ),
-                ],
+                    const SizedBox(height: AppTheme.spacing2),
+                    Text(
+                      'Track your carbon footprint and eco-friendly activities',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          
-          // Green Tokens Balance
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacing3),
-              child: CarbonCreditCard(
-                tokens: 128.5,
-                footprint: 42.3,
-                offsetPercentage: 75,
-              ),
-            ),
-          )
-            .animate()
-            .fadeIn(
-              delay: AppTheme.defaultAnimationDuration,
-              duration: AppTheme.defaultAnimationDuration,
-            )
-            .slideY(
-              begin: 0.2,
-              end: 0,
-              delay: AppTheme.defaultAnimationDuration,
-              duration: AppTheme.defaultAnimationDuration,
-              curve: Curves.easeOutCubic,
-            ),
-          
-          // Statistics
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(AppTheme.spacing3),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Your Impact',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  )
-                    .animate()
-                    .fadeIn(
-                      delay: AppTheme.defaultAnimationDuration * 1.5,
-                      duration: AppTheme.defaultAnimationDuration,
-                    ),
-                    
-                  const SizedBox(height: AppTheme.spacing3),
-                  
-                  Row(
-                    children: [
-                      Expanded(
-                        child: StatsCard(
-                          icon: Icons.co2,
-                          title: 'CO₂ Reduced',
-                          value: '42.3',
-                          unit: 'tons',
-                          backgroundColor: AppTheme.accentTeal.withOpacity(0.2),
-                          iconColor: AppTheme.accentTeal,
-                        ),
-                      ),
-                      const SizedBox(width: AppTheme.spacing3),
-                      Expanded(
-                        child: StatsCard(
-                          icon: Icons.eco,
-                          title: 'Trees Planted',
-                          value: '17',
-                          unit: 'trees',
-                          backgroundColor: AppTheme.accentLime.withOpacity(0.2),
-                          iconColor: AppTheme.accentLime,
-                        ),
-                      ),
-                    ],
-                  )
-                    .animate()
-                    .fadeIn(
-                      delay: AppTheme.defaultAnimationDuration * 2,
-                      duration: AppTheme.defaultAnimationDuration,
-                    )
-                    .slideY(
-                      begin: 0.2,
-                      end: 0,
-                      delay: AppTheme.defaultAnimationDuration * 2,
-                      duration: AppTheme.defaultAnimationDuration,
-                      curve: Curves.easeOutCubic,
-                    ),
-                ],
-              ),
-            ),
-          ),
-          
-          // Recent Actions
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(AppTheme.spacing3),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Eco Actions',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          // TODO: View all actions
-                        },
-                        child: const Text('View All'),
-                      ),
-                    ],
-                  )
-                    .animate()
-                    .fadeIn(
-                      delay: AppTheme.defaultAnimationDuration * 2.5,
-                      duration: AppTheme.defaultAnimationDuration,
-                    ),
-                    
-                  const SizedBox(height: AppTheme.spacing3),
-
-                  Column(
-                    children: [
-                      const EcoActionCard(
-                        title: 'Plant a Tree',
-                        description: 'Contribute to reforestation efforts',
-                        iconData: Icons.park_outlined,
-                        reward: 10.0,
-                        progress: 0.4,
-                      ),
-                      const SizedBox(height: AppTheme.spacing3),
-                      const EcoActionCard(
-                        title: 'Use Public Transport',
-                        description: 'Reduce your carbon footprint by 5%',
-                        iconData: Icons.directions_bus_outlined,
-                        reward: 5.0,
-                        progress: 0.7,
-                      ),
-                      const SizedBox(height: AppTheme.spacing3),
-                      const EcoActionCard(
-                        title: 'Reduce Energy Usage',
-                        description: 'Monitor and reduce home energy consumption',
-                        iconData: Icons.lightbulb_outline,
-                        reward: 8.0,
-                        progress: 0.2,
-                      ),
-                    ],
-                  )
-                    .animate()
-                    .fadeIn(
-                      delay: AppTheme.defaultAnimationDuration * 3,
-                      duration: AppTheme.defaultAnimationDuration,
-                    )
-                    .slideY(
-                      begin: 0.2,
-                      end: 0,
-                      delay: AppTheme.defaultAnimationDuration * 3,
-                      duration: AppTheme.defaultAnimationDuration,
-                      curve: Curves.easeOutCubic,
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
-} 
+}
+
+class MarketplacePage extends StatelessWidget {
+  const MarketplacePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              pinned: true,
+              title: const Text('Marketplace'),
+              actions: [
+                IconButton(
+                  icon: Icon(
+                    ThemeProvider.of(context).isDarkMode
+                        ? Icons.light_mode_outlined
+                        : Icons.dark_mode_outlined,
+                  ),
+                  onPressed: () {
+                    ThemeProvider.of(context).toggleTheme();
+                  },
+                ),
+              ],
+            ),
+            SliverFillRemaining(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.shopping_cart_outlined,
+                      size: 64,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(height: AppTheme.spacing4),
+                    Text(
+                      'Marketplace Coming Soon',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: AppTheme.spacing2),
+                    Text(
+                      'Buy and sell carbon credits',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ProjectsPage extends StatelessWidget {
+  const ProjectsPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              pinned: true,
+              title: const Text('Projects'),
+              actions: [
+                IconButton(
+                  icon: Icon(
+                    ThemeProvider.of(context).isDarkMode
+                        ? Icons.light_mode_outlined
+                        : Icons.dark_mode_outlined,
+                  ),
+                  onPressed: () {
+                    ThemeProvider.of(context).toggleTheme();
+                  },
+                ),
+              ],
+            ),
+            SliverFillRemaining(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.eco_outlined,
+                      size: 64,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(height: AppTheme.spacing4),
+                    Text(
+                      'Projects Coming Soon',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: AppTheme.spacing2),
+                    Text(
+                      'Explore and support eco-friendly projects',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ProfilePage extends StatelessWidget {
+  const ProfilePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final authProvider = AuthProvider.of(context);
+    final user = authProvider.currentUser;
+
+    return Scaffold(
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers: [
+            // App Bar
+            SliverAppBar(
+              pinned: true,
+              title: const Text('Profile'),
+              actions: [
+                // Theme toggle
+                IconButton(
+                  icon: Icon(
+                    ThemeProvider.of(context).isDarkMode
+                        ? Icons.light_mode_outlined
+                        : Icons.dark_mode_outlined,
+                  ),
+                  onPressed: () {
+                    ThemeProvider.of(context).toggleTheme();
+                  },
+                ),
+              ],
+            ),
+
+            // Profile Content
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(AppTheme.spacing4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Profile picture
+                    CircleAvatar(
+                      radius: 50,
+                      backgroundColor: AppTheme.accentTeal.withOpacity(0.2),
+                      backgroundImage: user?.photoUrl != null
+                          ? NetworkImage(user!.photoUrl!)
+                          : null,
+                      child: user?.photoUrl == null
+                          ? Icon(
+                              Icons.person,
+                              size: 50,
+                              color: AppTheme.accentTeal,
+                            )
+                          : null,
+                    ),
+
+                    const SizedBox(height: AppTheme.spacing4),
+
+                    // User name
+                    Text(
+                      user?.displayName ?? 'Eco Warrior',
+                      style: Theme.of(context).textTheme.titleLarge,
+                      textAlign: TextAlign.center,
+                    ),
+
+                    const SizedBox(height: AppTheme.spacing2),
+
+                    // User email
+                    Text(
+                      user?.email ?? 'No email provided',
+                      style: Theme.of(context).textTheme.bodySmall,
+                      textAlign: TextAlign.center,
+                    ),
+
+                    const SizedBox(height: AppTheme.spacing5),
+
+                    // Profile Options
+                    ..._buildProfileOptions(context),
+
+                    const SizedBox(height: AppTheme.spacing5),
+
+                    // Sign Out Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () => _signOut(context),
+                        icon: const Icon(Icons.logout),
+                        label: const Text('Sign Out'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.all(AppTheme.spacing3),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildProfileOptions(BuildContext context) {
+    return [
+      _ProfileOption(
+        icon: Icons.settings_outlined,
+        title: 'Account Settings',
+        onTap: () {
+          // TODO: Navigate to account settings
+        },
+      ),
+      const SizedBox(height: AppTheme.spacing3),
+      _ProfileOption(
+        icon: Icons.bar_chart_outlined,
+        title: 'Carbon Stats',
+        onTap: () {
+          // TODO: Navigate to carbon stats
+        },
+      ),
+      const SizedBox(height: AppTheme.spacing3),
+      _ProfileOption(
+        icon: Icons.history_outlined,
+        title: 'Transaction History',
+        onTap: () {
+          // TODO: Navigate to transaction history
+        },
+      ),
+      const SizedBox(height: AppTheme.spacing3),
+      _ProfileOption(
+        icon: Icons.notifications_outlined,
+        title: 'Notification Settings',
+        onTap: () {
+          // TODO: Navigate to notification settings
+        },
+      ),
+    ];
+  }
+
+  void _signOut(BuildContext context) async {
+    final authProvider = AuthProvider.of(context, listen: false);
+
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    // Sign out
+    await authProvider.signOut();
+
+    // Close dialog and navigate to login screen
+    if (context.mounted) {
+      Navigator.of(context).pop(); // Close dialog
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+        (route) => false,
+      );
+    }
+  }
+}
+
+class _ProfileOption extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+
+  const _ProfileOption({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppTheme.borderRadius3),
+      child: Container(
+        padding: const EdgeInsets.all(AppTheme.spacing3),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(AppTheme.borderRadius3),
+        ),
+        child: Row(
+          children: [
+            Icon(icon),
+            const SizedBox(width: AppTheme.spacing3),
+            Expanded(
+              child: Text(
+                title,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+            const Icon(Icons.chevron_right),
+          ],
+        ),
+      ),
+    );
+  }
+}
