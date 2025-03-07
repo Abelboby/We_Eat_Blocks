@@ -4,6 +4,7 @@ import CarbonPools from './pages/carbon_pools';
 import Explorer from './pages/explorer';
 import CrossChain from './pages/cross_chain';
 import Retirements from './pages/retirements';
+import NDVIAnalyzer from './pages/ndvi_analyzer';
 
 // Main application routes
 export const mainRoutes = [
@@ -48,5 +49,9 @@ export const dashboardRoutes = [
   {
     path: '/dashboard/retirements',
     element: <Retirements />,
+  },
+  {
+    path: '/dashboard/ndvi-analyzer',
+    element: <NDVIAnalyzer />,
   },
 ]; 
