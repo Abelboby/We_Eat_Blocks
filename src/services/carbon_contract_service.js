@@ -1202,8 +1202,8 @@ export const getPendingReports = async () => {
 	}
 };
 
-// Get all verified reports
-export const getVerifiedReports = async () => {
+// Get all verified reports, optionally filtered by wallet address
+export const getVerifiedReports = async (walletAddress = null) => {
 	try {
 		const contract = await getContract();
 		
@@ -1225,20 +1225,26 @@ export const getVerifiedReports = async () => {
 							category: report.category || 'Uncategorized',
 							timestamp: report.timestamp?.toString() || '0',
 							evidenceLink: report.evidenceLink || '',
-							latitudeValue: report.latitudeValue?.toString() || '0',
-							latitudeDirection: report.latitudeDirection || 'N',
-							longitudeValue: report.longitudeValue?.toString() || '0',
-							longitudeDirection: report.longitudeDirection || 'E',
-							status: report.status || 0,
-							verificationResult: report.verificationResult || false,
-							verificationTimestamp: report.verificationTimestamp?.toString() || '0',
-							verifierNotes: report.verifierNotes || ''
+							latitude: report.latitude?.toString() || '0',
+							latDirection: report.latDirection || 'N',
+							longitude: report.longitude?.toString() || '0',
+							longDirection: report.longDirection || 'E',
+							mintedTokens: report.mintedTokens?.toString() || '0',
+							verified: report.verified || false
 						};
 					} catch (e) {
 						console.error('Error processing report data:', e);
 						return null;
 					}
 				}).filter(report => report !== null);
+				
+				// If a wallet address is provided, filter reports by that address
+				if (walletAddress) {
+					processedReports = processedReports.filter(report => 
+						report.reporter && report.reporter.toLowerCase() === walletAddress.toLowerCase()
+					);
+					console.log(`Filtered to ${processedReports.length} reports for address ${walletAddress}`);
+				}
 			}
 			
 			return {
@@ -1251,15 +1257,15 @@ export const getVerifiedReports = async () => {
 			return {
 				success: false,
 				reports: [],
-				error: 'Failed to retrieve reports from the contract. The contract may not be properly deployed on Sepolia testnet.'
+				error: contractError.message || 'Failed to get verified reports from contract'
 			};
 		}
 	} catch (error) {
-		console.error('Error getting verified reports:', error);
+		console.error('Error in getVerifiedReports:', error);
 		return {
 			success: false,
 			reports: [],
-			error: error.message || 'Failed to get verified reports'
+			error: error.message || 'Error accessing the contract'
 		};
 	}
 };
