@@ -264,6 +264,15 @@ const NDVIAnalyzer = () => {
     ? verifiedReports.filter(report => report.category === categoryFilter)
     : verifiedReports;
     
+  // Add a console log to help debug
+  useEffect(() => {
+    if (verifiedReports.length > 0) {
+      console.log("All reports loaded:", verifiedReports.length);
+      console.log("Filtered reports:", filteredReports.length);
+      console.log("Sample report IDs:", verifiedReports.slice(0, 3).map(r => r.id));
+    }
+  }, [verifiedReports, filteredReports, categoryFilter]);
+  
   // Reset selection and filters
   const handleResetSelection = () => {
     setSelectedReportId('');
@@ -304,14 +313,24 @@ const NDVIAnalyzer = () => {
     
     if (!reportId) return; // If empty selection, do nothing
     
-    // Find the selected report
+    // Find the selected report - look in all reports, not just filtered reports
     const selectedReport = verifiedReports.find(report => report.id === reportId);
     if (selectedReport) {
+      console.log("Selected report:", selectedReport.title);
+      console.log("Setting coordinates to:", selectedReport.coordinates);
+      
       // Set coordinates from the report
-      setCoordinates(selectedReport.coordinates);
+      setCoordinates({
+        north: selectedReport.coordinates.north,
+        south: selectedReport.coordinates.south,
+        east: selectedReport.coordinates.east,
+        west: selectedReport.coordinates.west
+      });
       
       // Clear any existing error
       setError(null);
+    } else {
+      console.error("Could not find report with ID:", reportId);
     }
   };
   
@@ -566,11 +585,17 @@ const NDVIAnalyzer = () => {
                         disabled={isLoadingReports || filteredReports.length === 0}
                       >
                         <option value="">-- Select a verified report --</option>
-                        {filteredReports.map(report => (
-                          <option key={report.id} value={report.id}>
-                            {report.companyName} - {report.title} ({report.formattedDate})
-                          </option>
-                        ))}
+                        {filteredReports.map((report, index) => {
+                          // Console log to verify unique keys
+                          if (index < 5) {
+                            console.log(`Option ${index} has key: ${report.id}`); 
+                          }
+                          return (
+                            <option key={report.id} value={report.id}>
+                              {report.companyName} - {report.title} ({report.formattedDate})
+                            </option>
+                          );
+                        })}
                       </select>
                       
                       {/* Reset button */}
@@ -603,29 +628,41 @@ const NDVIAnalyzer = () => {
                 {/* Selected report details */}
                 {selectedReportId && (
                   <div className="mt-3 pt-3 border-t border-[#76EAD7]/10">
-                    {filteredReports.map(report => report.id === selectedReportId && (
-                      <div key={report.id} className="text-sm">
-                        <div className="flex items-center mb-1">
-                          <div className="w-3 h-3 rounded-full bg-[#76EAD7] mr-2"></div>
-                          <h4 className="text-white font-medium">{report.title}</h4>
+                    {(() => {
+                      // Find the report in all reports, not just filtered
+                      const report = verifiedReports.find(r => r.id === selectedReportId);
+                      if (!report) {
+                        return (
+                          <p className="text-[#94A3B8] text-sm">
+                            Report details not found. Please try selecting again.
+                          </p>
+                        );
+                      }
+                      
+                      return (
+                        <div className="text-sm">
+                          <div className="flex items-center mb-1">
+                            <div className="w-3 h-3 rounded-full bg-[#76EAD7] mr-2"></div>
+                            <h4 className="text-white font-medium">{report.title}</h4>
+                          </div>
+                          <p className="text-[#94A3B8] mb-1">
+                            <span className="font-medium">Company:</span> {report.companyName}
+                          </p>
+                          <p className="text-[#94A3B8] mb-1">
+                            <span className="font-medium">Category:</span> {report.category}
+                          </p>
+                          <p className="text-[#94A3B8] mb-1">
+                            <span className="font-medium">Original Coordinates:</span> {report.originalCoordinates.latitude}° {report.originalCoordinates.latDirection}, {report.originalCoordinates.longitude}° {report.originalCoordinates.longDirection}
+                          </p>
+                          <p className="text-[#94A3B8] mb-1">
+                            <span className="font-medium">Converted Coordinates:</span> {report.originalCoordinates.convertedLat.toFixed(6)}°, {report.originalCoordinates.convertedLng.toFixed(6)}°
+                          </p>
+                          <p className="text-[#94A3B8]">
+                            <span className="font-medium">Verified:</span> {report.formattedDate}
+                          </p>
                         </div>
-                        <p className="text-[#94A3B8] mb-1">
-                          <span className="font-medium">Company:</span> {report.companyName}
-                        </p>
-                        <p className="text-[#94A3B8] mb-1">
-                          <span className="font-medium">Category:</span> {report.category}
-                        </p>
-                        <p className="text-[#94A3B8] mb-1">
-                          <span className="font-medium">Original Coordinates:</span> {report.originalCoordinates.latitude}° {report.originalCoordinates.latDirection}, {report.originalCoordinates.longitude}° {report.originalCoordinates.longDirection}
-                        </p>
-                        <p className="text-[#94A3B8] mb-1">
-                          <span className="font-medium">Converted Coordinates:</span> {report.originalCoordinates.convertedLat.toFixed(6)}°, {report.originalCoordinates.convertedLng.toFixed(6)}°
-                        </p>
-                        <p className="text-[#94A3B8]">
-                          <span className="font-medium">Verified:</span> {report.formattedDate}
-                        </p>
-                      </div>
-                    ))}
+                      );
+                    })()}
                   </div>
                 )}
               </div>

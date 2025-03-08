@@ -1403,8 +1403,12 @@ export const getVerifiedReportsWithCoordinates = async () => {
 			const date = new Date(parseInt(report.timestamp) * 1000);
 			const formattedDate = date.toLocaleDateString();
 			
+			// Ensure each report has a unique ID by combining with timestamp if needed
+			const uniqueId = `${report.id}-${report.timestamp}`;
+			
 			return {
-				id: report.id,
+				id: uniqueId,
+				originalId: report.id,
 				title: report.title,
 				category: report.category,
 				reporter: report.reporter,
