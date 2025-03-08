@@ -266,7 +266,6 @@ class _WalletScreenState extends State<WalletScreen>
                       Row(
                         children: [
                           Expanded(
-                            flex: 2,
                             child: _buildPremiumActionButton(
                               icon: Icons.swap_horiz,
                               label: 'Replace Wallet',
@@ -310,8 +309,8 @@ class _WalletScreenState extends State<WalletScreen>
                             ),
                           ),
                           const SizedBox(width: 12),
-                          Expanded(
-                            flex: 1,
+                          SizedBox(
+                            width: 120, // Fixed width for the Remove button
                             child: _buildPremiumActionButton(
                               icon: Icons.delete_outline,
                               label: 'Remove',
@@ -887,7 +886,7 @@ class _WalletScreenState extends State<WalletScreen>
             child: Row(
               mainAxisSize: isWide ? MainAxisSize.max : MainAxisSize.min,
               mainAxisAlignment:
-                  isWide ? MainAxisAlignment.center : MainAxisAlignment.start,
+                  isWide ? MainAxisAlignment.center : MainAxisAlignment.center,
               children: [
                 Icon(
                   icon,
@@ -895,12 +894,16 @@ class _WalletScreenState extends State<WalletScreen>
                   size: 20,
                 ),
                 SizedBox(width: isWide ? 12 : 8),
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: isFilled ? Colors.white : color,
-                    fontWeight: FontWeight.w600,
-                    fontSize: isWide ? 16 : 14,
+                Flexible(
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      color: isFilled ? Colors.white : color,
+                      fontWeight: FontWeight.w600,
+                      fontSize: isWide ? 16 : 14,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ],
