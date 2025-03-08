@@ -366,7 +366,7 @@ const Dashboard = () => {
             </p>
           </div>
           <Link 
-            to="/ndvi-analyzer" 
+            to="/dashboard/ndvi-analyzer" 
             className="mt-4 md:mt-0 px-6 py-3 bg-gradient-to-r from-[#76EAD7] to-[#C4FB6D] text-black font-semibold rounded-lg hover:from-[#C4FB6D] hover:to-[#76EAD7] transition-all duration-300"
           >
             Launch NDVI Analyzer
