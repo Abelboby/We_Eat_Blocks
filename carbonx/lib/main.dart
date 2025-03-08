@@ -12,6 +12,7 @@ import 'features/wallet/providers/wallet_provider.dart';
 import 'features/market/providers/market_provider.dart';
 import 'screens/authentication/login_screen.dart';
 import 'screens/home/home_screen.dart';
+import 'screens/splash/splash_screen.dart';
 import 'providers/events_provider.dart';
 
 void main() async {
@@ -86,14 +87,7 @@ class CarbonXApp extends StatelessWidget {
           theme: themeProvider.themeData,
           themeMode: themeProvider.themeMode,
           debugShowCheckedModeBanner: false,
-          home: Consumer<AuthProvider>(
-            builder: (context, authProvider, _) {
-              // Show HomeScreen if user is authenticated, otherwise show LoginScreen
-              return authProvider.isAuthenticated
-                  ? const HomeScreen()
-                  : const LoginScreen();
-            },
-          ),
+          home: const SplashScreen(),
         );
       },
     );

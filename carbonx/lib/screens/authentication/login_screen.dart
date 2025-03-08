@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/animated_logo.dart';
+import '../../widgets/x_logo.dart';
 import '../../widgets/google_sign_in_button.dart';
 import '../../services/auth_provider.dart';
 import '../home/home_screen.dart';
@@ -76,7 +76,7 @@ class _LoginScreenState extends State<LoginScreen> {
             SizedBox(height: MediaQuery.of(context).size.height * 0.08),
 
             // Logo
-            const AnimatedLogo(size: 120)
+            const XLogo(size: 150)
                 .animate()
                 .fadeIn(duration: AppTheme.slowAnimationDuration)
                 .scale(delay: AppTheme.defaultAnimationDuration),
