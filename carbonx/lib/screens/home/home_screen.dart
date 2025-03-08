@@ -11,6 +11,8 @@ import '../profile/profile_edit_screen.dart';
 import '../authentication/login_screen.dart';
 import '../../widgets/animated_bar_indicator.dart';
 import 'dart:ui';
+import '../../features/market/providers/market_provider.dart';
+import '../../features/wallet/providers/wallet_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -372,6 +374,14 @@ class DashboardPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDarkMode = Provider.of<ThemeProvider>(context).isDarkMode;
+    final walletProvider = Provider.of<WalletProvider>(context);
+    final marketProvider = Provider.of<MarketProvider>(context);
+
+    // Calculate total tokens
+    final hasWallet = walletProvider.hasWallet;
+    final tokenBalance = marketProvider.tokenBalance;
+    final citizenTokenBalance = marketProvider.citizenTokenBalance;
+    final totalTokens = tokenBalance + citizenTokenBalance;
 
     return Scaffold(
       body: Container(
@@ -488,6 +498,29 @@ class DashboardPage extends StatelessWidget {
                         isDarkMode: isDarkMode,
                       ),
                       const SizedBox(height: 16),
+
+                      // Token Balance Card - Display prominently at the top of stats
+                      if (hasWallet)
+                        _buildPremiumCard(
+                          child: _buildTokenBalanceCard(
+                            regularTokens: tokenBalance,
+                            citizenTokens: citizenTokenBalance,
+                            isDarkMode: isDarkMode,
+                          ),
+                          isDarkMode: isDarkMode,
+                          gradientColors: isDarkMode
+                              ? [
+                                  AppTheme.accentTeal.withOpacity(0.3),
+                                  AppTheme.accentLime.withOpacity(0.1),
+                                ]
+                              : [
+                                  AppTheme.accentTeal.withOpacity(0.1),
+                                  AppTheme.accentLime.withOpacity(0.05),
+                                ],
+                        ),
+
+                      if (hasWallet) const SizedBox(height: 16),
+
                       Row(
                         children: [
                           Expanded(
@@ -596,6 +629,185 @@ class DashboardPage extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildTokenBalanceCard({
+    required BigInt regularTokens,
+    required BigInt citizenTokens,
+    required bool isDarkMode,
+  }) {
+    final totalTokens = regularTokens + citizenTokens;
+
+    return Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.accentTeal.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppTheme.accentTeal.withOpacity(0.5),
+                    width: 1,
+                  ),
+                ),
+                child: const Icon(
+                  Icons.account_balance_wallet,
+                  size: 24,
+                  color: AppTheme.accentTeal,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Available Tokens',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: isDarkMode
+                            ? Colors.white
+                            : AppTheme.textPrimaryLight,
+                      ),
+                    ),
+                    Text(
+                      'Your total balance across all accounts',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDarkMode
+                            ? AppTheme.textSecondary
+                            : AppTheme.textSecondaryLight,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                totalTokens.toString(),
+                style: TextStyle(
+                  fontSize: 36,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.accentTeal,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Tokens',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                  color: isDarkMode
+                      ? AppTheme.textSecondary
+                      : AppTheme.textSecondaryLight,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // Token breakdown
+          Row(
+            children: [
+              Expanded(
+                child: _buildTokenTypeCard(
+                  title: 'Regular',
+                  amount: regularTokens.toString(),
+                  icon: Icons.token,
+                  iconColor: AppTheme.accentTeal,
+                  isDarkMode: isDarkMode,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildTokenTypeCard(
+                  title: 'Citizen',
+                  amount: citizenTokens.toString(),
+                  icon: Icons.public,
+                  iconColor: AppTheme.accentLime,
+                  isDarkMode: isDarkMode,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: () {
+              // Navigate to market/wallet tab
+            },
+            icon: const Icon(Icons.swap_horiz, size: 18),
+            label: const Text('Trade Tokens'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppTheme.accentTeal,
+              side: const BorderSide(color: AppTheme.accentTeal),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTokenTypeCard({
+    required String title,
+    required String amount,
+    required IconData icon,
+    required Color iconColor,
+    required bool isDarkMode,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDarkMode ? Colors.black12 : Colors.white70,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDarkMode ? Colors.white10 : Colors.grey.shade200,
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 16, color: iconColor),
+              const SizedBox(width: 6),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isDarkMode
+                      ? AppTheme.textSecondary
+                      : AppTheme.textSecondaryLight,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            amount,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: isDarkMode ? Colors.white : AppTheme.textPrimaryLight,
+            ),
+          ),
+        ],
       ),
     );
   }
