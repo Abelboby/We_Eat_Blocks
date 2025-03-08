@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { MapContainer, TileLayer, Rectangle, useMap } from 'react-leaflet';
 import { analyzeArea } from '../services/ndvi_service';
+import { getVerifiedReportsWithCoordinates } from '../services/carbon_contract_service';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import L from 'leaflet';
@@ -247,6 +248,73 @@ const NDVIAnalyzer = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   
+  // State for verified reports
+  const [verifiedReports, setVerifiedReports] = useState([]);
+  const [isLoadingReports, setIsLoadingReports] = useState(false);
+  const [selectedReportId, setSelectedReportId] = useState('');
+  
+  // Add state for category filter
+  const [categoryFilter, setCategoryFilter] = useState('');
+  
+  // Get unique categories from verified reports
+  const categories = [...new Set(verifiedReports.map(report => report.category))].sort();
+  
+  // Filter reports by category if filter is set
+  const filteredReports = categoryFilter 
+    ? verifiedReports.filter(report => report.category === categoryFilter)
+    : verifiedReports;
+    
+  // Reset selection and filters
+  const handleResetSelection = () => {
+    setSelectedReportId('');
+    setCategoryFilter('');
+  };
+  
+  // Handle category filter change
+  const handleCategoryFilterChange = (e) => {
+    setCategoryFilter(e.target.value);
+    setSelectedReportId(''); // Clear selection when category changes
+  };
+  
+  // Fetch verified reports with coordinates
+  useEffect(() => {
+    const fetchVerifiedReports = async () => {
+      setIsLoadingReports(true);
+      try {
+        const result = await getVerifiedReportsWithCoordinates();
+        if (result.success) {
+          setVerifiedReports(result.reports);
+        } else {
+          console.error('Failed to load verified reports:', result.error);
+        }
+      } catch (error) {
+        console.error('Error fetching verified reports:', error);
+      } finally {
+        setIsLoadingReports(false);
+      }
+    };
+    
+    fetchVerifiedReports();
+  }, []);
+  
+  // Handle report selection from dropdown
+  const handleReportSelect = (e) => {
+    const reportId = e.target.value;
+    setSelectedReportId(reportId);
+    
+    if (!reportId) return; // If empty selection, do nothing
+    
+    // Find the selected report
+    const selectedReport = verifiedReports.find(report => report.id === reportId);
+    if (selectedReport) {
+      // Set coordinates from the report
+      setCoordinates(selectedReport.coordinates);
+      
+      // Clear any existing error
+      setError(null);
+    }
+  };
+  
   // Handle rectangle drawn on map
   const handleRectangleDrawn = (rectCoords) => {
     // Process the coordinates to ensure North > South and East > West
@@ -417,19 +485,29 @@ const NDVIAnalyzer = () => {
                   <DrawControls onRectangleDrawn={handleRectangleDrawn} />
                   
                   {coordinates.north && coordinates.south && coordinates.east && coordinates.west && (
-                    <Rectangle
-                      bounds={[
-                        [coordinates.south, coordinates.west],
-                        [coordinates.north, coordinates.east]
-                      ]}
-                      pathOptions={{ 
-                        color: '#76EAD7', 
-                        weight: 2,
-                        opacity: 1,
-                        fillOpacity: 0.3,
-                        fillColor: '#76EAD7'
-                      }}
-                    />
+                    <>
+                      <Rectangle
+                        bounds={[
+                          [coordinates.south, coordinates.west],
+                          [coordinates.north, coordinates.east]
+                        ]}
+                        pathOptions={{ 
+                          color: '#76EAD7', 
+                          weight: 2,
+                          opacity: 1,
+                          fillOpacity: 0.3,
+                          fillColor: '#76EAD7'
+                        }}
+                      />
+                      <MapBoundsUpdater 
+                        bounds={{
+                          north: parseFloat(coordinates.north),
+                          south: parseFloat(coordinates.south),
+                          east: parseFloat(coordinates.east),
+                          west: parseFloat(coordinates.west)
+                        }} 
+                      />
+                    </>
                   )}
                 </MapContainer>
               </div>
@@ -437,6 +515,120 @@ const NDVIAnalyzer = () => {
               <p className="text-sm text-[#94A3B8] mb-4">
                 <strong>Click the rectangle tool</strong> in the top left of the map to draw a rectangle, or enter coordinates manually below.
               </p>
+              
+              {/* Verified Reports Dropdown */}
+              <div className="mb-6 bg-[#1E293B]/50 p-4 rounded-xl border border-[#76EAD7]/10">
+                <h3 className="text-white font-medium mb-2">Load Location from Verified Reports</h3>
+                <p className="text-sm text-[#94A3B8] mb-3">
+                  Select a verified sustainability report to automatically load its location coordinates.
+                  {verifiedReports.length > 0 && (
+                    <span className="ml-2 px-2 py-1 bg-[#76EAD7]/10 rounded-full text-xs font-medium text-[#76EAD7]">
+                      {verifiedReports.length} report{verifiedReports.length !== 1 ? 's' : ''} available
+                    </span>
+                  )}
+                </p>
+                
+                <div className="flex flex-col space-y-3 mb-3">
+                  {/* Category filter */}
+                  <div className="w-full">
+                    <label htmlFor="categoryFilter" className="block mb-1 text-sm font-medium text-[#94A3B8]">
+                      Filter by Category
+                    </label>
+                    <select
+                      id="categoryFilter"
+                      value={categoryFilter}
+                      onChange={handleCategoryFilterChange}
+                      className="block w-full px-4 py-2 rounded-lg bg-[#0F172A] text-white border border-[#76EAD7]/20 
+                                hover:border-[#76EAD7]/40 focus:outline-none focus:ring-2 focus:ring-[#76EAD7]/20"
+                      disabled={isLoadingReports || verifiedReports.length === 0}
+                    >
+                      <option value="">All Categories</option>
+                      {categories.map(category => (
+                        <option key={category} value={category}>
+                          {category}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  {/* Reports dropdown */}
+                  <div className="w-full">
+                    <label htmlFor="reportSelect" className="block mb-1 text-sm font-medium text-[#94A3B8]">
+                      Select Report {categoryFilter && `(${filteredReports.length} reports in ${categoryFilter})`}
+                    </label>
+                    <div className="flex space-x-2">
+                      <select
+                        id="reportSelect"
+                        value={selectedReportId}
+                        onChange={handleReportSelect}
+                        className="flex-grow px-4 py-2 rounded-lg bg-[#0F172A] text-white border border-[#76EAD7]/20 
+                                  hover:border-[#76EAD7]/40 focus:outline-none focus:ring-2 focus:ring-[#76EAD7]/20"
+                        disabled={isLoadingReports || filteredReports.length === 0}
+                      >
+                        <option value="">-- Select a verified report --</option>
+                        {filteredReports.map(report => (
+                          <option key={report.id} value={report.id}>
+                            {report.companyName} - {report.title} ({report.formattedDate})
+                          </option>
+                        ))}
+                      </select>
+                      
+                      {/* Reset button */}
+                      {(selectedReportId || categoryFilter) && (
+                        <button
+                          onClick={handleResetSelection}
+                          className="px-3 py-2 rounded-lg bg-[#0F172A] text-[#94A3B8] border border-[#76EAD7]/20 
+                                    hover:border-[#76EAD7]/40 focus:outline-none"
+                          title="Reset selection"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                
+                {isLoadingReports && (
+                  <div className="mt-2 text-sm text-[#94A3B8] flex items-center">
+                    <svg className="animate-spin h-4 w-4 mr-2 text-[#76EAD7]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Loading verified reports...
+                  </div>
+                )}
+                
+                {/* Selected report details */}
+                {selectedReportId && (
+                  <div className="mt-3 pt-3 border-t border-[#76EAD7]/10">
+                    {filteredReports.map(report => report.id === selectedReportId && (
+                      <div key={report.id} className="text-sm">
+                        <div className="flex items-center mb-1">
+                          <div className="w-3 h-3 rounded-full bg-[#76EAD7] mr-2"></div>
+                          <h4 className="text-white font-medium">{report.title}</h4>
+                        </div>
+                        <p className="text-[#94A3B8] mb-1">
+                          <span className="font-medium">Company:</span> {report.companyName}
+                        </p>
+                        <p className="text-[#94A3B8] mb-1">
+                          <span className="font-medium">Category:</span> {report.category}
+                        </p>
+                        <p className="text-[#94A3B8] mb-1">
+                          <span className="font-medium">Original Coordinates:</span> {report.originalCoordinates.latitude}° {report.originalCoordinates.latDirection}, {report.originalCoordinates.longitude}° {report.originalCoordinates.longDirection}
+                        </p>
+                        <p className="text-[#94A3B8] mb-1">
+                          <span className="font-medium">Converted Coordinates:</span> {report.originalCoordinates.convertedLat.toFixed(6)}°, {report.originalCoordinates.convertedLng.toFixed(6)}°
+                        </p>
+                        <p className="text-[#94A3B8]">
+                          <span className="font-medium">Verified:</span> {report.formattedDate}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
               
               {/* Coordinates inputs */}
               <div className="grid grid-cols-2 gap-4 mb-6">

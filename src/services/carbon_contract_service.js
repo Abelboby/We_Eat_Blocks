@@ -1,4 +1,5 @@
 import { ethers } from 'ethers';
+import { getAllCompanies } from './auth_service';
 
 // Contract details
 const CONTRACT_ADDRESS = '0x6A65cDE51c8ABD644b5C3ddD7797804b2544E279';
@@ -1314,6 +1315,136 @@ export const verifyReport = async (reportIndex, tokensToMint) => {
 			success: false,
 			error: error.message || 'Failed to verify report. Please ensure you have admin rights.',
 			transaction: null
+		};
+	}
+};
+
+// Get verified reports with valid coordinates for NDVI Analyzer
+export const getVerifiedReportsWithCoordinates = async () => {
+	try {
+		const result = await getVerifiedReports();
+		
+		if (!result.success) {
+			return {
+				success: false,
+				reports: [],
+				error: result.error
+			};
+		}
+		
+		// Filter reports that have valid coordinates
+		const reportsWithCoordinates = result.reports.filter(report => {
+			// Check if latitude and longitude are valid numbers
+			const lat = parseFloat(report.latitude);
+			const long = parseFloat(report.longitude);
+			return !isNaN(lat) && !isNaN(long) && 
+				(report.latDirection === 'N' || report.latDirection === 'S') &&
+				(report.longDirection === 'E' || report.longDirection === 'W');
+		});
+		
+		// Get all companies to map reporter addresses to company names
+		const companiesResult = await getAllCompanies();
+		const companies = companiesResult.success ? companiesResult.companies : [];
+		
+		// Create a map of wallet addresses to company names
+		const companyMap = {};
+		companies.forEach(company => {
+			if (company.walletAddress && company.name) {
+				companyMap[company.walletAddress.toLowerCase()] = {
+					name: company.name,
+					id: company.id
+				};
+			}
+		});
+		
+		// Process coordinates for NDVI Analyzer
+		// Convert single points to rectangular areas
+		const processedReports = reportsWithCoordinates.map(report => {
+			// Parse coordinates
+			let latitude = parseFloat(report.latitude);
+			let longitude = parseFloat(report.longitude);
+			
+			// Check if the values are in DDMM.MMM format or another non-standard format
+			// Typical valid latitude is between -90 and 90, and longitude is between -180 and 180
+			if (Math.abs(latitude) > 90) {
+				// This is likely in DDMM.MMM format, convert to decimal degrees
+				// For example, 4071 -> 40.71 degrees (40 degrees and 71 minutes)
+				const degrees = Math.floor(latitude / 100);
+				const minutes = latitude - (degrees * 100);
+				latitude = degrees + (minutes / 60);
+				
+				// Ensure latitude is within valid range
+				latitude = Math.min(Math.max(latitude, -90), 90);
+			}
+			
+			if (Math.abs(longitude) > 180) {
+				// This is likely in DDMM.MMM format, convert to decimal degrees
+				// For example, 7401 -> 74.01 degrees (74 degrees and 1 minute)
+				const degrees = Math.floor(longitude / 100);
+				const minutes = longitude - (degrees * 100);
+				longitude = degrees + (minutes / 60);
+				
+				// Ensure longitude is within valid range
+				longitude = Math.min(Math.max(longitude, -180), 180);
+			}
+			
+			// Apply direction (N/S, E/W)
+			if (report.latDirection === 'S') latitude = -latitude;
+			if (report.longDirection === 'W') longitude = -longitude;
+			
+			// Create a small rectangle around the point (roughly 2km in each direction)
+			// 0.018 degrees is approximately 2km at the equator
+			const buffer = 0.018;
+			
+			// Get company info if available
+			const companyInfo = companyMap[report.reporter.toLowerCase()] || { name: 'Unknown Company', id: null };
+			
+			// Format timestamp as date
+			const date = new Date(parseInt(report.timestamp) * 1000);
+			const formattedDate = date.toLocaleDateString();
+			
+			return {
+				id: report.id,
+				title: report.title,
+				category: report.category,
+				reporter: report.reporter,
+				companyName: companyInfo.name,
+				companyId: companyInfo.id,
+				formattedDate: formattedDate,
+				timestamp: report.timestamp,
+				coordinates: {
+					north: latitude + buffer,
+					south: latitude - buffer,
+					east: longitude + buffer,
+					west: longitude - buffer
+				},
+				// Include original data for reference
+				originalCoordinates: {
+					latitude: parseFloat(report.latitude),
+					longitude: parseFloat(report.longitude),
+					latDirection: report.latDirection,
+					longDirection: report.longDirection,
+					// Include the converted values for reference
+					convertedLat: latitude,
+					convertedLng: longitude
+				}
+			};
+		});
+		
+		// Sort by most recent first
+		processedReports.sort((a, b) => parseInt(b.timestamp) - parseInt(a.timestamp));
+		
+		return {
+			success: true,
+			reports: processedReports,
+			error: null
+		};
+	} catch (error) {
+		console.error('Error in getVerifiedReportsWithCoordinates:', error);
+		return {
+			success: false,
+			reports: [],
+			error: error.message || 'Failed to get reports with coordinates'
 		};
 	}
 }; 
