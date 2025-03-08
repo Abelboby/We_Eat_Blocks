@@ -10,6 +10,7 @@ import 'core/services/wallet_service.dart';
 import 'features/wallet/providers/wallet_provider.dart';
 import 'screens/authentication/login_screen.dart';
 import 'screens/home/home_screen.dart';
+import 'providers/events_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,6 +46,11 @@ void main() async {
             context.read<WalletService>(),
             context.read<UserService>(),
           ),
+        ),
+
+        // Events Provider
+        ChangeNotifierProvider<EventsProvider>(
+          create: (_) => EventsProvider(),
         ),
       ],
       child: const CarbonXApp(),

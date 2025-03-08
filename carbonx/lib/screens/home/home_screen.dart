@@ -4,6 +4,8 @@ import '../../theme/app_theme.dart';
 import '../../theme/theme_provider.dart';
 import '../../services/auth_provider.dart';
 import '../../features/wallet/presentation/screens/wallet_screen.dart';
+import '../../features/events/screens/events_screen.dart';
+import '../../features/events/screens/create_event_screen.dart';
 import '../profile/profile_edit_screen.dart';
 import '../authentication/login_screen.dart';
 import '../../widgets/animated_bar_indicator.dart';
@@ -24,7 +26,7 @@ class _HomeScreenState extends State<HomeScreen>
   final List<Widget> _pages = [
     const DashboardPage(),
     const MarketplacePage(),
-    const ProjectsPage(),
+    const EventsScreen(),
     const WalletScreen(),
     const ProfilePage(),
   ];
@@ -167,7 +169,7 @@ class PremiumNavigationBar extends StatelessWidget {
                   context: context,
                   icon: Icons.eco_outlined,
                   activeIcon: Icons.eco_rounded,
-                  label: 'Projects',
+                  label: 'Events',
                   index: 2,
                 ),
                 _buildNavItem(
@@ -930,8 +932,8 @@ class MarketplacePage extends StatelessWidget {
   }
 }
 
-class ProjectsPage extends StatelessWidget {
-  const ProjectsPage({super.key});
+class EventsScreen extends StatelessWidget {
+  const EventsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -960,7 +962,7 @@ class ProjectsPage extends StatelessWidget {
             slivers: [
               SliverAppBar(
                 pinned: true,
-                title: const Text('Projects'),
+                title: const Text('Events'),
                 backgroundColor: Colors.transparent,
                 elevation: 0,
                 actions: [
@@ -1014,7 +1016,7 @@ class ProjectsPage extends StatelessWidget {
                               ),
                               const SizedBox(height: 24),
                               Text(
-                                'Projects Coming Soon',
+                                'Events Coming Soon',
                                 style: theme.textTheme.headlineSmall,
                                 textAlign: TextAlign.center,
                               ),
@@ -1029,6 +1031,105 @@ class ProjectsPage extends StatelessWidget {
                                 ),
                                 textAlign: TextAlign.center,
                               ),
+
+                              // Add Host Event Button
+                              const SizedBox(height: 32),
+                              Container(
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      AppTheme.accentTeal,
+                                      AppTheme.accentLime
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color:
+                                          AppTheme.accentTeal.withOpacity(0.4),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 6),
+                                    ),
+                                  ],
+                                ),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: () {
+                                      // Navigate to the CreateEventScreen when clicked
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const CreateEventScreen(),
+                                        ),
+                                      ).then((result) {
+                                        if (result == true) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: const Text(
+                                                  'Cleanup event created successfully!'),
+                                              backgroundColor:
+                                                  AppTheme.accentTeal,
+                                              behavior:
+                                                  SnackBarBehavior.floating,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      });
+                                    },
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 20, horizontal: 16),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.all(8),
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  Colors.white.withOpacity(0.2),
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: Icon(
+                                              Icons.add,
+                                              size: 24,
+                                              color: isDarkMode
+                                                  ? AppTheme.primaryDark
+                                                  : Colors.white,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Expanded(
+                                            child: Text(
+                                              'HOST EVENT',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold,
+                                                color: isDarkMode
+                                                    ? AppTheme.primaryDark
+                                                    : Colors.white,
+                                                letterSpacing: 0.5,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -1037,11 +1138,11 @@ class ProjectsPage extends StatelessWidget {
                       const SizedBox(height: 24),
                       _buildSectionHeader(
                         icon: Icons.category_outlined,
-                        title: 'Project Categories',
+                        title: 'Event Categories',
                         isDarkMode: isDarkMode,
                       ),
                       const SizedBox(height: 16),
-                      _buildProjectCategoryCard(
+                      _buildEventCategoryCard(
                         title: 'Reforestation',
                         description:
                             'Tree planting and forest restoration projects',
@@ -1050,7 +1151,7 @@ class ProjectsPage extends StatelessWidget {
                         isDarkMode: isDarkMode,
                       ),
                       const SizedBox(height: 12),
-                      _buildProjectCategoryCard(
+                      _buildEventCategoryCard(
                         title: 'Renewable Energy',
                         description:
                             'Solar, wind, and other clean energy initiatives',
@@ -1059,7 +1160,7 @@ class ProjectsPage extends StatelessWidget {
                         isDarkMode: isDarkMode,
                       ),
                       const SizedBox(height: 12),
-                      _buildProjectCategoryCard(
+                      _buildEventCategoryCard(
                         title: 'Ocean Conservation',
                         description:
                             'Protecting marine ecosystems and reducing pollution',
@@ -1105,7 +1206,7 @@ class ProjectsPage extends StatelessWidget {
                       const SizedBox(height: 24),
                       _buildPremiumActionButton(
                         icon: Icons.notifications_active_outlined,
-                        label: 'Get Notified When Projects Launch',
+                        label: 'Get Notified When Events Launch',
                         color: AppTheme.accentLime,
                         isDarkMode: isDarkMode,
                         isFilled: true,
@@ -1115,7 +1216,7 @@ class ProjectsPage extends StatelessWidget {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                  'You\'ll be notified when projects launch!'),
+                                  'You\'ll be notified when events launch!'),
                               backgroundColor: AppTheme.accentLime,
                               behavior: SnackBarBehavior.floating,
                               shape: RoundedRectangleBorder(
@@ -1136,7 +1237,7 @@ class ProjectsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildProjectCategoryCard({
+  Widget _buildEventCategoryCard({
     required String title,
     required String description,
     required IconData icon,
