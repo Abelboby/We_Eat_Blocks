@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../widgets/sell_tokens_section.dart';
 import '../../../theme/app_theme.dart';
 import '../../../theme/theme_provider.dart';
 import '../../wallet/providers/wallet_provider.dart';
 import '../providers/market_provider.dart';
+import '../../../core/constants/app_constants.dart';
 
 class MarketplacePage extends StatelessWidget {
   const MarketplacePage({super.key});
@@ -15,6 +17,11 @@ class MarketplacePage extends StatelessWidget {
     final isDarkMode = Provider.of<ThemeProvider>(context).isDarkMode;
     final walletProvider = Provider.of<WalletProvider>(context);
     final marketProvider = Provider.of<MarketProvider>(context);
+
+    // Function to handle refresh
+    Future<void> _handleRefresh() async {
+      return await marketProvider.refreshData();
+    }
 
     return Scaffold(
       body: Container(
@@ -34,187 +41,252 @@ class MarketplacePage extends StatelessWidget {
           ),
         ),
         child: SafeArea(
-          child: CustomScrollView(
-            slivers: [
-              SliverAppBar(
-                pinned: true,
-                title: const Text('Marketplace'),
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                actions: [
-                  // Use Consumer to properly listen to ThemeProvider changes
-                  Consumer<ThemeProvider>(
-                    builder: (context, themeProvider, _) {
-                      return IconButton(
-                        icon: Icon(
-                          themeProvider.isDarkMode
-                              ? Icons.light_mode_outlined
-                              : Icons.dark_mode_outlined,
-                        ),
-                        onPressed: () {
-                          // Use Provider.of with listen: false for method calls
-                          Provider.of<ThemeProvider>(context, listen: false)
-                              .toggleTheme();
-                        },
-                      );
-                    },
-                  ),
-                ],
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildSectionHeader(
-                        icon: Icons.store,
-                        title: 'Carbon Credit Marketplace',
-                        isDarkMode: isDarkMode,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Show wallet not connected message if no wallet
-                      if (!walletProvider.hasWallet)
-                        _buildWalletNotConnectedCard(context, isDarkMode),
-
-                      // Show SellTokensSection if wallet is connected
-                      if (walletProvider.hasWallet) const SellTokensSection(),
-
-                      const SizedBox(height: 24),
-                      _buildSectionHeader(
-                        icon: Icons.trending_up,
-                        title: 'Market Trends',
-                        isDarkMode: isDarkMode,
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildPremiumCard(
-                              child: _buildMarketTrendCard(
-                                title: 'Carbon Credit Price',
-                                value: '\$25.00',
-                                trend: '+2.5%',
-                                isDarkMode: isDarkMode,
-                                isPositive: true,
-                              ),
-                              isDarkMode: isDarkMode,
-                            ),
+          child: RefreshIndicator(
+            onRefresh: _handleRefresh,
+            color: AppTheme.accentTeal,
+            backgroundColor: isDarkMode ? AppTheme.secondaryDark : Colors.white,
+            child: CustomScrollView(
+              slivers: [
+                SliverAppBar(
+                  pinned: true,
+                  title: const Text('Marketplace'),
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  actions: [
+                    // Use Consumer to properly listen to ThemeProvider changes
+                    Consumer<ThemeProvider>(
+                      builder: (context, themeProvider, _) {
+                        return IconButton(
+                          icon: Icon(
+                            themeProvider.isDarkMode
+                                ? Icons.light_mode_outlined
+                                : Icons.dark_mode_outlined,
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _buildPremiumCard(
-                              child: _buildMarketTrendCard(
-                                title: 'Market Volume',
-                                value: '1.2M',
-                                trend: '+5.7%',
-                                isDarkMode: isDarkMode,
-                                isPositive: true,
-                              ),
-                              isDarkMode: isDarkMode,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      _buildSectionHeader(
-                        icon: Icons.history,
-                        title: 'Transaction History',
-                        isDarkMode: isDarkMode,
-                      ),
-                      const SizedBox(height: 16),
-                      _buildPremiumCard(
-                        child: Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          onPressed: () {
+                            // Use Provider.of with listen: false for method calls
+                            Provider.of<ThemeProvider>(context, listen: false)
+                                .toggleTheme();
+                          },
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Pull-to-refresh hint
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              if (!walletProvider.hasWallet) ...[
-                                Center(
-                                  child: Column(
-                                    children: [
-                                      Icon(
-                                        Icons.history,
-                                        size: 40,
-                                        color: isDarkMode
-                                            ? AppTheme.textSecondary
-                                            : AppTheme.textSecondaryLight,
-                                      ),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        'No Wallet Connected',
-                                        style: theme.textTheme.titleMedium,
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'Connect a wallet to view your transaction history',
-                                        style: theme.textTheme.bodySmall,
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
-                                  ),
+                              Icon(
+                                Icons.arrow_downward,
+                                size: 14,
+                                color: isDarkMode
+                                    ? AppTheme.textSecondary
+                                    : AppTheme.textSecondaryLight,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Pull down to refresh balances',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isDarkMode
+                                      ? AppTheme.textSecondary
+                                      : AppTheme.textSecondaryLight,
                                 ),
-                              ] else if (marketProvider
-                                  .transactionHistory.isEmpty) ...[
-                                Center(
-                                  child: Column(
-                                    children: [
-                                      Icon(
-                                        Icons.history,
-                                        size: 40,
-                                        color: isDarkMode
-                                            ? AppTheme.textSecondary
-                                            : AppTheme.textSecondaryLight,
-                                      ),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        'No Transaction History',
-                                        style: theme.textTheme.titleMedium,
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'Your transactions will appear here',
-                                        style: theme.textTheme.bodySmall,
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ] else ...[
-                                ListView.separated(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount:
-                                      marketProvider.transactionHistory.length,
-                                  separatorBuilder: (context, index) =>
-                                      const Divider(),
-                                  itemBuilder: (context, index) {
-                                    final tx = marketProvider
-                                        .transactionHistory[index];
-                                    return _buildTransactionHistoryItem(
-                                      type: tx.typeString,
-                                      amount: tx.amount.toString(),
-                                      date: tx.formattedDate,
-                                      isDarkMode: isDarkMode,
-                                      isPositive: tx.txType !=
-                                          1, // Not a sell transaction
-                                    );
-                                  },
-                                ),
-                              ],
+                              ),
                             ],
                           ),
                         ),
-                        isDarkMode: isDarkMode,
-                      ),
-                    ],
+                        _buildSectionHeader(
+                          icon: Icons.store,
+                          title: 'Carbon Credit Marketplace',
+                          isDarkMode: isDarkMode,
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Show wallet not connected message if no wallet
+                        if (!walletProvider.hasWallet)
+                          _buildWalletNotConnectedCard(context, isDarkMode),
+
+                        // Show SellTokensSection if wallet is connected
+                        if (walletProvider.hasWallet) const SellTokensSection(),
+
+                        const SizedBox(height: 24),
+                        _buildSectionHeader(
+                          icon: Icons.trending_up,
+                          title: 'Market Trends',
+                          isDarkMode: isDarkMode,
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildPremiumCard(
+                                child: _buildMarketTrendCard(
+                                  title: 'Carbon Credit Price',
+                                  value: '\$25.00',
+                                  trend: '+2.5%',
+                                  isDarkMode: isDarkMode,
+                                  isPositive: true,
+                                ),
+                                isDarkMode: isDarkMode,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildPremiumCard(
+                                child: _buildMarketTrendCard(
+                                  title: 'Market Volume',
+                                  value: '1.2M',
+                                  trend: '+5.7%',
+                                  isDarkMode: isDarkMode,
+                                  isPositive: true,
+                                ),
+                                isDarkMode: isDarkMode,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        _buildSectionHeader(
+                          icon: Icons.history,
+                          title: 'Transaction History',
+                          isDarkMode: isDarkMode,
+                        ),
+                        const SizedBox(height: 4),
+                        // Last refreshed indicator
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Icon(
+                                Icons.refresh,
+                                size: 12,
+                                color: isDarkMode
+                                    ? AppTheme.textSecondary
+                                    : AppTheme.textSecondaryLight,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Last updated: ${_formatDateTime(marketProvider.lastRefreshed)}',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: isDarkMode
+                                      ? AppTheme.textSecondary
+                                      : AppTheme.textSecondaryLight,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        _buildPremiumCard(
+                          child: Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (marketProvider.isLoading) ...[
+                                  const Center(
+                                    child: Padding(
+                                      padding: EdgeInsets.all(20.0),
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  ),
+                                ] else if (!walletProvider.hasWallet) ...[
+                                  Center(
+                                    child: Column(
+                                      children: [
+                                        Icon(
+                                          Icons.history,
+                                          size: 40,
+                                          color: isDarkMode
+                                              ? AppTheme.textSecondary
+                                              : AppTheme.textSecondaryLight,
+                                        ),
+                                        const SizedBox(height: 16),
+                                        Text(
+                                          'No Wallet Connected',
+                                          style: theme.textTheme.titleMedium,
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          'Connect a wallet to view your transaction history',
+                                          style: theme.textTheme.bodySmall,
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ] else if (marketProvider
+                                    .transactionHistory.isEmpty) ...[
+                                  Center(
+                                    child: Column(
+                                      children: [
+                                        Icon(
+                                          Icons.history,
+                                          size: 40,
+                                          color: isDarkMode
+                                              ? AppTheme.textSecondary
+                                              : AppTheme.textSecondaryLight,
+                                        ),
+                                        const SizedBox(height: 16),
+                                        Text(
+                                          'No Transaction History',
+                                          style: theme.textTheme.titleMedium,
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          'Your transactions will appear here',
+                                          style: theme.textTheme.bodySmall,
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ] else ...[
+                                  ListView.separated(
+                                    shrinkWrap: true,
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    itemCount: marketProvider
+                                        .transactionHistory.length,
+                                    separatorBuilder: (context, index) =>
+                                        const Divider(),
+                                    itemBuilder: (context, index) {
+                                      final tx = marketProvider
+                                          .transactionHistory[index];
+                                      return _buildTransactionHistoryItem(
+                                        type: tx.typeString,
+                                        amount: tx.amount.toString(),
+                                        date: tx.formattedDate,
+                                        isDarkMode: isDarkMode,
+                                        isPositive: tx.txType !=
+                                            1, // Not a sell transaction
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                          isDarkMode: isDarkMode,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -570,5 +642,12 @@ class MarketplacePage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _formatDateTime(DateTime? dateTime) {
+    if (dateTime == null) {
+      return 'N/A';
+    }
+    return DateFormat('MMM d, h:mm a').format(dateTime);
   }
 }

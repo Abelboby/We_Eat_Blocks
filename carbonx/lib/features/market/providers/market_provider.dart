@@ -48,6 +48,7 @@ class MarketProvider extends ChangeNotifier {
   String? _errorMessage;
   bool _disposed = false;
   List<TokenTransaction> _transactionHistory = [];
+  DateTime _lastRefreshed = DateTime.now();
 
   MarketProvider({
     required ContractService contractService,
@@ -64,6 +65,7 @@ class MarketProvider extends ChangeNotifier {
   String? get lastTransactionHash => _lastTransactionHash;
   String? get errorMessage => _errorMessage;
   List<TokenTransaction> get transactionHistory => _transactionHistory;
+  DateTime get lastRefreshed => _lastRefreshed;
 
   Future<void> _loadData() async {
     if (_walletProvider.address == null) return;
@@ -81,6 +83,7 @@ class MarketProvider extends ChangeNotifier {
       // Load transaction history
       await _loadTransactionHistory();
 
+      _lastRefreshed = DateTime.now();
       _errorMessage = null;
     } catch (e) {
       _errorMessage = 'Failed to load market data: $e';
@@ -179,8 +182,8 @@ class MarketProvider extends ChangeNotifier {
     }
   }
 
-  void refreshData() {
-    _loadData();
+  Future<void> refreshData() async {
+    await _loadData();
   }
 
   // Clear transaction hash

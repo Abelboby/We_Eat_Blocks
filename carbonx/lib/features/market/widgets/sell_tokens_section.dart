@@ -83,6 +83,16 @@ class _SellTokensSectionState extends State<SellTokensSection> {
                       'Sell Carbon Tokens',
                       style: theme.textTheme.titleLarge,
                     ),
+                    if (marketProvider.isLoading) ...[
+                      const SizedBox(width: 12),
+                      const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
                 const SizedBox(height: 20.0),
@@ -105,16 +115,24 @@ class _SellTokensSectionState extends State<SellTokensSection> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      Flexible(
-                        child: Text(
-                          totalTokens.toString(),
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.accentTeal,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
+                      marketProvider.isLoading
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Flexible(
+                              child: Text(
+                                totalTokens.toString(),
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.accentTeal,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
                     ],
                   ),
                 ),
