@@ -7,7 +7,9 @@ import 'services/auth_service.dart';
 import 'services/auth_provider.dart';
 import 'services/user_service.dart';
 import 'core/services/wallet_service.dart';
+import 'core/services/contract_service.dart';
 import 'features/wallet/providers/wallet_provider.dart';
+import 'features/market/providers/market_provider.dart';
 import 'screens/authentication/login_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'providers/events_provider.dart';
@@ -23,6 +25,7 @@ void main() async {
   final userService = UserService();
   final authService = AuthService();
   final walletService = WalletService(sharedPreferences);
+  final contractService = ContractService();
 
   runApp(
     MultiProvider(
@@ -41,10 +44,23 @@ void main() async {
 
         // Wallet Services
         Provider<WalletService>(create: (_) => walletService),
+        Provider<ContractService>(create: (_) => contractService),
         ChangeNotifierProvider<WalletProvider>(
           create: (context) => WalletProvider(
             context.read<WalletService>(),
             context.read<UserService>(),
+          ),
+        ),
+
+        // Market Provider
+        ChangeNotifierProxyProvider<WalletProvider, MarketProvider>(
+          create: (context) => MarketProvider(
+            contractService: contractService,
+            walletProvider: context.read<WalletProvider>(),
+          ),
+          update: (context, walletProvider, previous) => MarketProvider(
+            contractService: contractService,
+            walletProvider: walletProvider,
           ),
         ),
 
