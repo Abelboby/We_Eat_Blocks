@@ -6,7 +6,7 @@ import 'package:web3dart/web3dart.dart';
 class WalletService {
   static const String _privateKeyKey = 'private_key';
   static const String _rpcUrl =
-      'https://sepolia.infura.io/v3/1e5d37b2778b40378686ef7e365e7958';
+      'https://sepolia.infura.io/v3/8e3f90378e12472097f8bb798dad8934';
 
   final Web3Client _client;
   final SharedPreferences _prefs;
