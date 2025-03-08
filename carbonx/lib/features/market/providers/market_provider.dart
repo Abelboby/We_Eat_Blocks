@@ -20,11 +20,11 @@ class TokenTransaction {
 
   String get typeString {
     switch (txType) {
-      case 0:
+      case 0: // Buy
         return 'Buy';
-      case 1:
+      case 1: // Sell
         return 'Sell';
-      case 2:
+      case 2: // Mint
         return 'Mint';
       default:
         return 'Unknown';
@@ -99,16 +99,16 @@ class MarketProvider extends ChangeNotifier {
           .getTokenTransactionHistory(_walletProvider.address!);
 
       debugPrint('Transactions data: $transactions');
-      
+
       _transactionHistory = transactions.map((tx) {
         // Handle tx as a List instead of a Map
         // In Solidity structs, fields are accessed by index, not by name
         final List<dynamic> txData = tx as List<dynamic>;
-        
+
         return TokenTransaction(
           account: txData[0].toString(), // address field
-          amount: txData[1] as BigInt,   // amount field
-          price: txData[2] as BigInt,    // price field
+          amount: txData[1] as BigInt, // amount field
+          price: txData[2] as BigInt, // price field
           timestamp: DateTime.fromMillisecondsSinceEpoch(
             (txData[3] as BigInt).toInt() * 1000, // timestamp field
           ),
@@ -118,7 +118,7 @@ class MarketProvider extends ChangeNotifier {
 
       // Sort by timestamp, most recent first
       _transactionHistory.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-      
+
       debugPrint('Loaded ${_transactionHistory.length} transactions');
     } catch (e) {
       debugPrint('Error loading transaction history: $e');

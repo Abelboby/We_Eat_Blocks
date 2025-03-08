@@ -1,13 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:web3dart/web3dart.dart';
+import '../constants/app_constants.dart';
 
 class ContractService {
-  static const String _rpcUrl =
-      'https://sepolia.infura.io/v3/8e3f90378e12472097f8bb798dad8934';
-  static const String _contractAddress =
-      '0xb45503b9af7ec3b2bfd58c08daa70926cd4ef539';
-  static const int _chainId = 11155111; // Sepolia chain ID
+  // Use constants from NetworkConstants
+  static const String _rpcUrl = NetworkConstants.rpcUrl;
+  static const String _contractAddress = NetworkConstants.contractAddress;
+  static const int _chainId = NetworkConstants.chainId;
 
   final Web3Client _client;
   final DeployedContract _contract;
@@ -35,7 +35,8 @@ class ContractService {
           contract: _contract,
           function: function,
           parameters: [tokenAmount],
-          maxGas: 300000, // Adjust gas as needed
+          maxGas: NetworkConstants
+              .defaultGasLimit, // Use the constant for gas limit
         ),
         chainId: _chainId,
       );
