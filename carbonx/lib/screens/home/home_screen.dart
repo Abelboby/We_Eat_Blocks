@@ -456,7 +456,7 @@ class DashboardPage extends StatelessWidget {
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Icon(
-                                      Icons.dashboard_customize_outlined,
+                                      Icons.bar_chart_rounded,
                                       size: 28,
                                       color: AppTheme.accentTeal,
                                     ),
@@ -468,12 +468,12 @@ class DashboardPage extends StatelessWidget {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          'Dashboard Coming Soon',
+                                          'CarbonX Dashboard',
                                           style: theme.textTheme.titleLarge,
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
-                                          'Track your carbon footprint and eco-friendly activities',
+                                          'Track your impact and manage your carbon assets',
                                           style: theme.textTheme.bodyMedium
                                               ?.copyWith(
                                             color: isDarkMode
@@ -485,6 +485,59 @@ class DashboardPage extends StatelessWidget {
                                     ),
                                   ),
                                 ],
+                              ),
+                              const SizedBox(height: 16),
+                              Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: isDarkMode
+                                      ? Colors.black12
+                                      : Colors.grey.shade50,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: isDarkMode
+                                        ? Colors.white10
+                                        : Colors.grey.shade200,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  children: [
+                                    _buildDashboardStat(
+                                      label: 'Activities',
+                                      value: '0',
+                                      icon: Icons.checklist_rounded,
+                                      isDarkMode: isDarkMode,
+                                    ),
+                                    Container(
+                                      height: 40,
+                                      width: 1,
+                                      color: isDarkMode
+                                          ? Colors.white10
+                                          : Colors.grey.shade200,
+                                    ),
+                                    _buildDashboardStat(
+                                      label: 'Reports',
+                                      value: '0',
+                                      icon: Icons.description_outlined,
+                                      isDarkMode: isDarkMode,
+                                    ),
+                                    Container(
+                                      height: 40,
+                                      width: 1,
+                                      color: isDarkMode
+                                          ? Colors.white10
+                                          : Colors.grey.shade200,
+                                    ),
+                                    _buildDashboardStat(
+                                      label: 'Rewards',
+                                      value: '0',
+                                      icon: Icons.workspace_premium_outlined,
+                                      isDarkMode: isDarkMode,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
@@ -718,46 +771,29 @@ class DashboardPage extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-
-          // Token breakdown
-          Row(
-            children: [
-              Expanded(
-                child: _buildTokenTypeCard(
-                  title: 'Regular',
-                  amount: regularTokens.toString(),
-                  icon: Icons.token,
-                  iconColor: AppTheme.accentTeal,
-                  isDarkMode: isDarkMode,
+          Builder(
+            builder: (context) {
+              return OutlinedButton.icon(
+                onPressed: () {
+                  // Navigate to market tab (index 1)
+                  final homeState =
+                      context.findAncestorStateOfType<_HomeScreenState>();
+                  if (homeState != null) {
+                    homeState._onItemTapped(1);
+                  }
+                },
+                icon: const Icon(Icons.swap_horiz, size: 18),
+                label: const Text('Trade Tokens'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppTheme.accentTeal,
+                  minimumSize: const Size(double.infinity, 44),
+                  side: const BorderSide(color: AppTheme.accentTeal),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildTokenTypeCard(
-                  title: 'Citizen',
-                  amount: citizenTokens.toString(),
-                  icon: Icons.public,
-                  iconColor: AppTheme.accentLime,
-                  isDarkMode: isDarkMode,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 16),
-          OutlinedButton.icon(
-            onPressed: () {
-              // Navigate to market/wallet tab
+              );
             },
-            icon: const Icon(Icons.swap_horiz, size: 18),
-            label: const Text('Trade Tokens'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppTheme.accentTeal,
-              side: const BorderSide(color: AppTheme.accentTeal),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
           ),
         ],
       ),
@@ -880,6 +916,42 @@ class DashboardPage extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+
+  Widget _buildDashboardStat({
+    required String label,
+    required String value,
+    required IconData icon,
+    required bool isDarkMode,
+  }) {
+    return Column(
+      children: [
+        Icon(
+          icon,
+          size: 20,
+          color: AppTheme.accentTeal,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: isDarkMode ? Colors.white : AppTheme.textPrimaryLight,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: isDarkMode
+                ? AppTheme.textSecondary
+                : AppTheme.textSecondaryLight,
+          ),
+        ),
+      ],
     );
   }
 }

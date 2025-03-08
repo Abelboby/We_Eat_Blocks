@@ -6,7 +6,7 @@ class ContractService {
   static const String _rpcUrl =
       'https://sepolia.infura.io/v3/8e3f90378e12472097f8bb798dad8934';
   static const String _contractAddress =
-      '0x6A65cDE51c8ABD644b5C3ddD7797804b2544E279';
+      '0xb45503b9af7ec3b2bfd58c08daa70926cd4ef539';
   static const int _chainId = 11155111; // Sepolia chain ID
 
   final Web3Client _client;
