@@ -122,6 +122,41 @@ class ContractService {
     }
   }
 
+  // Get token transaction history for an address
+  Future<List<dynamic>> getTokenTransactionHistory(String address) async {
+    try {
+      final function = _contract.function('getTokenTransactionHistory');
+      final params = [EthereumAddress.fromHex(address)];
+
+      final result = await _client.call(
+        contract: _contract,
+        function: function,
+        params: params,
+      );
+
+      debugPrint('Raw transaction history result type: ${result.runtimeType}');
+      debugPrint('Raw transaction history for $address: $result');
+
+      if (result.isNotEmpty) {
+        debugPrint('First element type: ${result[0].runtimeType}');
+        debugPrint('First element: ${result[0]}');
+
+        if (result[0] is List && (result[0] as List).isNotEmpty) {
+          debugPrint('First transaction type: ${result[0][0].runtimeType}');
+          debugPrint('First transaction: ${result[0][0]}');
+        }
+      }
+
+      debugPrint(
+          'Transaction history length for $address: ${result[0].length}');
+      return result[0] as List<dynamic>;
+    } catch (e) {
+      debugPrint('Error getting token transaction history: $e');
+      debugPrint(StackTrace.current.toString());
+      throw Exception('Failed to get token transaction history: $e');
+    }
+  }
+
   // Dispose resources
   void dispose() {
     _client.dispose();

@@ -627,27 +627,88 @@ class DashboardPage extends StatelessWidget {
                         child: Padding(
                           padding: const EdgeInsets.all(20.0),
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(
-                                Icons.history,
-                                size: 40,
-                                color: isDarkMode
-                                    ? AppTheme.textSecondary
-                                    : AppTheme.textSecondaryLight,
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'No Recent Activity',
-                                style: theme.textTheme.titleMedium,
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Your recent actions will appear here',
-                                style: theme.textTheme.bodySmall,
-                                textAlign: TextAlign.center,
-                              ),
+                              // Check if there are any transactions to display
+                              if (marketProvider
+                                  .transactionHistory.isEmpty) ...[
+                                // No transaction message
+                                Center(
+                                  child: Column(
+                                    children: [
+                                      Icon(
+                                        Icons.history,
+                                        size: 40,
+                                        color: isDarkMode
+                                            ? AppTheme.textSecondary
+                                            : AppTheme.textSecondaryLight,
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        'No Recent Activity',
+                                        style: theme.textTheme.titleMedium,
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Your recent actions will appear here',
+                                        style: theme.textTheme.bodySmall,
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ] else ...[
+                                // Show the most recent transaction
+                                Text(
+                                  'Latest Transactions',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDarkMode
+                                        ? Colors.white
+                                        : AppTheme.textPrimaryLight,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                ...marketProvider.transactionHistory
+                                    .take(3)
+                                    .map((tx) => Padding(
+                                          padding: const EdgeInsets.only(
+                                              bottom: 12.0),
+                                          child: _buildTransactionItem(
+                                            type: tx.typeString,
+                                            amount: tx.amount.toString(),
+                                            date: tx.formattedDate,
+                                            isDarkMode: isDarkMode,
+                                            isPositive: tx.txType !=
+                                                1, // Not a sell transaction
+                                          ),
+                                        ))
+                                    .toList(),
+                                const SizedBox(height: 8),
+                                Builder(
+                                  builder: (context) {
+                                    return TextButton.icon(
+                                      onPressed: () {
+                                        // Navigate to market tab (index 1)
+                                        final homeState =
+                                            context.findAncestorStateOfType<
+                                                _HomeScreenState>();
+                                        if (homeState != null) {
+                                          homeState._onItemTapped(1);
+                                        }
+                                      },
+                                      icon: const Icon(Icons.history, size: 16),
+                                      label:
+                                          const Text('View All Transactions'),
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: AppTheme.accentTeal,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
                             ],
                           ),
                         ),
@@ -952,6 +1013,84 @@ class DashboardPage extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  // Helper method to build transaction item
+  Widget _buildTransactionItem({
+    required String type,
+    required String amount,
+    required String date,
+    required bool isDarkMode,
+    required bool isPositive,
+  }) {
+    final iconData = type == 'Buy'
+        ? Icons.add_circle_outline
+        : type == 'Sell'
+            ? Icons.remove_circle_outline
+            : Icons.token;
+
+    final color = isPositive ? Colors.green : Colors.red;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDarkMode ? Colors.black12 : Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isDarkMode ? Colors.white10 : Colors.grey.shade200,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              iconData,
+              size: 16,
+              color: color,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$type Transaction',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color:
+                        isDarkMode ? Colors.white : AppTheme.textPrimaryLight,
+                  ),
+                ),
+                Text(
+                  date,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDarkMode
+                        ? AppTheme.textSecondary
+                        : AppTheme.textSecondaryLight,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            '$amount ${isPositive ? '+' : '-'}',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

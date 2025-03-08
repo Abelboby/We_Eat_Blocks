@@ -4,6 +4,7 @@ import '../widgets/sell_tokens_section.dart';
 import '../../../theme/app_theme.dart';
 import '../../../theme/theme_provider.dart';
 import '../../wallet/providers/wallet_provider.dart';
+import '../providers/market_provider.dart';
 
 class MarketplacePage extends StatelessWidget {
   const MarketplacePage({super.key});
@@ -13,6 +14,7 @@ class MarketplacePage extends StatelessWidget {
     final theme = Theme.of(context);
     final isDarkMode = Provider.of<ThemeProvider>(context).isDarkMode;
     final walletProvider = Provider.of<WalletProvider>(context);
+    final marketProvider = Provider.of<MarketProvider>(context);
 
     return Scaffold(
       body: Container(
@@ -117,8 +119,8 @@ class MarketplacePage extends StatelessWidget {
                       ),
                       const SizedBox(height: 24),
                       _buildSectionHeader(
-                        icon: Icons.notifications_outlined,
-                        title: 'Get Notified',
+                        icon: Icons.history,
+                        title: 'Transaction History',
                         isDarkMode: isDarkMode,
                       ),
                       const SizedBox(height: 16),
@@ -128,42 +130,81 @@ class MarketplacePage extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                'Marketplace Updates',
-                                style: theme.textTheme.titleMedium,
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                'Get updates about new features, token price changes, and market opportunities.',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: isDarkMode
-                                      ? AppTheme.textSecondary
-                                      : AppTheme.textSecondaryLight,
-                                ),
-                              ),
-                              const SizedBox(height: 20),
-                              _buildPremiumActionButton(
-                                icon: Icons.notifications_active_outlined,
-                                label: 'Notify Me',
-                                color: AppTheme.accentTeal,
-                                isDarkMode: isDarkMode,
-                                isFilled: true,
-                                isWide: true,
-                                onPressed: () {
-                                  // Coming soon functionality
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                          'You\'ll receive notifications about marketplace updates!'),
-                                      backgroundColor: AppTheme.accentTeal,
-                                      behavior: SnackBarBehavior.floating,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
+                              if (!walletProvider.hasWallet) ...[
+                                Center(
+                                  child: Column(
+                                    children: [
+                                      Icon(
+                                        Icons.history,
+                                        size: 40,
+                                        color: isDarkMode
+                                            ? AppTheme.textSecondary
+                                            : AppTheme.textSecondaryLight,
                                       ),
-                                    ),
-                                  );
-                                },
-                              ),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        'No Wallet Connected',
+                                        style: theme.textTheme.titleMedium,
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Connect a wallet to view your transaction history',
+                                        style: theme.textTheme.bodySmall,
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ] else if (marketProvider
+                                  .transactionHistory.isEmpty) ...[
+                                Center(
+                                  child: Column(
+                                    children: [
+                                      Icon(
+                                        Icons.history,
+                                        size: 40,
+                                        color: isDarkMode
+                                            ? AppTheme.textSecondary
+                                            : AppTheme.textSecondaryLight,
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        'No Transaction History',
+                                        style: theme.textTheme.titleMedium,
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Your transactions will appear here',
+                                        style: theme.textTheme.bodySmall,
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ] else ...[
+                                ListView.separated(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount:
+                                      marketProvider.transactionHistory.length,
+                                  separatorBuilder: (context, index) =>
+                                      const Divider(),
+                                  itemBuilder: (context, index) {
+                                    final tx = marketProvider
+                                        .transactionHistory[index];
+                                    return _buildTransactionHistoryItem(
+                                      type: tx.typeString,
+                                      amount: tx.amount.toString(),
+                                      date: tx.formattedDate,
+                                      isDarkMode: isDarkMode,
+                                      isPositive: tx.txType !=
+                                          1, // Not a sell transaction
+                                    );
+                                  },
+                                ),
+                              ],
                             ],
                           ),
                         ),
@@ -176,6 +217,76 @@ class MarketplacePage extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildTransactionHistoryItem({
+    required String type,
+    required String amount,
+    required String date,
+    required bool isDarkMode,
+    required bool isPositive,
+  }) {
+    final iconData = type == 'Buy'
+        ? Icons.add_circle_outline
+        : type == 'Sell'
+            ? Icons.remove_circle_outline
+            : Icons.token;
+
+    final color = isPositive ? Colors.green : Colors.red;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              iconData,
+              size: 16,
+              color: color,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$type Transaction',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color:
+                        isDarkMode ? Colors.white : AppTheme.textPrimaryLight,
+                  ),
+                ),
+                Text(
+                  date,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDarkMode
+                        ? AppTheme.textSecondary
+                        : AppTheme.textSecondaryLight,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            '$amount ${isPositive ? '+' : '-'}',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+        ],
       ),
     );
   }

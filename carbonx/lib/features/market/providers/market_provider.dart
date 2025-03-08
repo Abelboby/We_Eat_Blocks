@@ -3,6 +3,39 @@ import 'package:web3dart/web3dart.dart';
 import '../../../core/services/contract_service.dart';
 import '../../../features/wallet/providers/wallet_provider.dart';
 
+class TokenTransaction {
+  final String account;
+  final BigInt amount;
+  final BigInt price;
+  final DateTime timestamp;
+  final int txType; // 0: Buy, 1: Sell, 2: Mint
+
+  TokenTransaction({
+    required this.account,
+    required this.amount,
+    required this.price,
+    required this.timestamp,
+    required this.txType,
+  });
+
+  String get typeString {
+    switch (txType) {
+      case 0:
+        return 'Buy';
+      case 1:
+        return 'Sell';
+      case 2:
+        return 'Mint';
+      default:
+        return 'Unknown';
+    }
+  }
+
+  String get formattedDate {
+    return '${timestamp.day}/${timestamp.month}/${timestamp.year} ${timestamp.hour}:${timestamp.minute}';
+  }
+}
+
 class MarketProvider extends ChangeNotifier {
   final ContractService _contractService;
   final WalletProvider _walletProvider;
@@ -14,6 +47,7 @@ class MarketProvider extends ChangeNotifier {
   String? _lastTransactionHash;
   String? _errorMessage;
   bool _disposed = false;
+  List<TokenTransaction> _transactionHistory = [];
 
   MarketProvider({
     required ContractService contractService,
@@ -29,6 +63,7 @@ class MarketProvider extends ChangeNotifier {
   BigInt get tokenSellPrice => _tokenSellPrice;
   String? get lastTransactionHash => _lastTransactionHash;
   String? get errorMessage => _errorMessage;
+  List<TokenTransaction> get transactionHistory => _transactionHistory;
 
   Future<void> _loadData() async {
     if (_walletProvider.address == null) return;
@@ -43,6 +78,9 @@ class MarketProvider extends ChangeNotifier {
           .getCitizenTokenBalance(_walletProvider.address!);
       _tokenSellPrice = await _contractService.getTokenSellPrice();
 
+      // Load transaction history
+      await _loadTransactionHistory();
+
       _errorMessage = null;
     } catch (e) {
       _errorMessage = 'Failed to load market data: $e';
@@ -50,6 +88,43 @@ class MarketProvider extends ChangeNotifier {
     } finally {
       _isLoading = false;
       _safeNotifyListeners();
+    }
+  }
+
+  Future<void> _loadTransactionHistory() async {
+    if (_walletProvider.address == null) return;
+
+    try {
+      final transactions = await _contractService
+          .getTokenTransactionHistory(_walletProvider.address!);
+
+      debugPrint('Transactions data: $transactions');
+      
+      _transactionHistory = transactions.map((tx) {
+        // Handle tx as a List instead of a Map
+        // In Solidity structs, fields are accessed by index, not by name
+        final List<dynamic> txData = tx as List<dynamic>;
+        
+        return TokenTransaction(
+          account: txData[0].toString(), // address field
+          amount: txData[1] as BigInt,   // amount field
+          price: txData[2] as BigInt,    // price field
+          timestamp: DateTime.fromMillisecondsSinceEpoch(
+            (txData[3] as BigInt).toInt() * 1000, // timestamp field
+          ),
+          txType: (txData[4] as BigInt).toInt(), // txType field (enum as uint8)
+        );
+      }).toList();
+
+      // Sort by timestamp, most recent first
+      _transactionHistory.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      
+      debugPrint('Loaded ${_transactionHistory.length} transactions');
+    } catch (e) {
+      debugPrint('Error loading transaction history: $e');
+      // Add stack trace for better debugging
+      debugPrint(StackTrace.current.toString());
+      // Don't throw here, just log the error and continue
     }
   }
 
